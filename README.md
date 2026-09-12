@@ -6,7 +6,7 @@ Shared workspace for Julian, Louis, and Christiaan.
 
 1. Read [the product vision](docs/vision.md) and [the current backlog](docs/backlog.md).
 2. Read [`CLAUDE.md`](CLAUDE.md) before asking an agent to make a meaningful change.
-3. Run the project using the commands documented here once the stack is chosen.
+3. Run the project using the commands below.
 
 ## Working agreement
 
@@ -17,13 +17,13 @@ Shared workspace for Julian, Louis, and Christiaan.
 
 ## Project commands
 
-The stack has not been chosen yet. Add the canonical commands here when it is:
+This project uses Vite, React, and TypeScript. Node.js 22 LTS or newer is recommended.
 
 ```sh
-# install
-# run locally
-# test
-# build
+npm install
+npm run dev
+npm run lint
+npm run build
 ```
 
 ## Documentation

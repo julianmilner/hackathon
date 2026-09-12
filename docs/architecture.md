@@ -4,7 +4,7 @@ Document only choices that guide implementation. Diagrams are optional until com
 
 ## Stack
 
-- **Frontend:**
+- **Frontend:** Vite, React, and TypeScript
 - **Backend / API:**
 - **Data / auth:**
 - **AI models or APIs:**
