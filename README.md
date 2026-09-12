@@ -34,3 +34,4 @@ npm run build
 - [Design system](docs/design-system.md) — product and visual rules.
 - [Architecture](docs/architecture.md) — technical boundaries and major choices.
 - [Demo plan](docs/demo.md) — pitch and click-path for judges.
+- [Rendering](docs/rendering.md) — how the 3D city is rendered, costs, and constraints.
