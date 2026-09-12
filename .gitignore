@@ -2,6 +2,11 @@ node_modules/
 dist/
 .DS_Store
 
+# Secrets (API keys, demo password) — never commit
+.env
+.env.local
+.env.*.local
+
 # Python data pipeline (scripts/crime)
 .venv/
 data/cache/
