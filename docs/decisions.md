@@ -102,3 +102,11 @@ Record a decision when it changes the work other people or agents should do. Kee
 **Why:** A recognisable mascot lands the joke instantly with a Claude-aware audience, where a Claude-coloured lizard needed explaining. Keeping the same rig and clips meant the swap cost an hour and nothing structural in the behaviour script changed.
 
 **Consequences:** No arms, so the attack is a body slam and the hit lands just past the face. Nothing glows, so the actor's roar glow pulse is a no-op for this style. Stride and footstep spacing in `KaijuBehaviour.ts` are tuned for stubby legs.
+
+## 2026-09-12 — Koeberg is a procedural Blender model, not a photogrammetry scan
+
+**Decision:** Build Koeberg Nuclear Power Station as a procedural Blender script (`blender/koeberg.py`) exported to GLB, with the interior (reactor vessel, steam generators, pumps, pressuriser, turbines, condensers, seawater culverts) modelled to real dimensions so the process can be shown inside a ghosted shell. The accident is a station-blackout sequence ending in a hydrogen detonation and a Gaussian-plume footprint, never a nuclear explosion.
+
+**Why:** The Google mesh has no interior and no separable dome, so neither the process view nor the breach can come from it. A scripted model rebuilds in eight seconds, keeps every dimension traceable to a source, and exports named nodes and anchor paths that the three.js layer animates. Framing the failure as loss of cooling and a chemical explosion is what the physics allows for 4.4 % enriched fuel and is what judges will hear from anyone who knows nuclear.
+
+**Consequences:** The station is a separate `<Koeberg>` component in the local metre frame that the city scene can place at the site coordinate; `showSite={false}` hides the terrace and breakwaters over the photoreal mesh. Footprint planes need a depth or height-field treatment over real terrain. Blender 5 is a build-time dependency for the model only; the GLB is committed.

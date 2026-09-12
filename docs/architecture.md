@@ -10,6 +10,7 @@ Document only choices that guide implementation. Diagrams are optional until com
 - **2D crime heatmap:** a separate Vite page, `crime.html` (`src/crime/`). It colours the raster layers on a canvas, overlays precinct outlines as SVG, and reads the value under the pointer straight from the raster. No map library. The grayscale PNGs plus `index.json` extent are the texture to drape over the 3D city, and the same decode gives a risk value for any clicked lat/lon.
 - **Simulations:** standalone three.js modules under `src/simulations/<name>/`, each with a sandbox page (for example `/tsunami.html`). They own a group in a local east-north-up frame and sample terrain from whatever object they are given, so the map places them with the tiles' ENU helper and calls `sampleTerrain(tilesGroup)`. Reference implementation and integration notes in `src/simulations/tsunami/README.md`.
 - **Generated models:** Blender scripts in `tools/blender/` export GLBs into `public/models/` (fynbos, kaiju). The GLBs are committed; Blender is only needed to change them.
+- **Koeberg model:** Blender 5 script (`blender/koeberg.py`) exported to GLB in `public/models/`, animated by react-three-fiber components in `src/scene/koeberg/`; standalone page `koeberg.html`. Blender is needed only to rebuild the asset.
 - **Backend / API:**
 - **Data / auth:**
 - **AI models or APIs:** Claude Fable 5.1 (`claude-fable-5-1`) via the Anthropic TypeScript SDK, proposed; not yet decided.

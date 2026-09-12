@@ -4,7 +4,7 @@ import { Accident, type SimState } from './Accident'
 import { useKoebergModel, useModelMode, type ViewMode } from './KoebergModel'
 import { Labels, type LabelItem } from './Labels'
 import { ProcessFlow, type ProcessState } from './ProcessFlow'
-import { offsetFromSite, PLACES, PROCESS_STEPS } from './site'
+import { EXPLOSION_T, offsetFromSite, PLACES, PROCESS_STEPS } from './site'
 
 export interface KoebergProps {
   mode: ViewMode
@@ -14,6 +14,8 @@ export interface KoebergProps {
   showSite?: boolean
   labelContainer?: HTMLElement | null
   activeStep?: string | null
+  // Force the shells see-through (the accident timeline uses this while the failure builds inside).
+  ghost?: boolean
   position?: [number, number, number]
   rotation?: [number, number, number]
   // Regional fallout footprint and zone rings; see Accident.
@@ -22,9 +24,9 @@ export interface KoebergProps {
 
 // The whole station: model, process flow, accident timeline and labels. Drop it into any scene
 // at the site position; its frame is metres, y up, x east, z south, origin at the site centroid.
-export function Koeberg({ mode, sim, process, showSite = true, labelContainer = null, activeStep = null, position = [0, 0, 0], rotation = [0, 0, 0], region = true }: KoebergProps) {
+export function Koeberg({ mode, sim, process, showSite = true, labelContainer = null, activeStep = null, ghost = false, position = [0, 0, 0], rotation = [0, 0, 0], region = true }: KoebergProps) {
   const parts = useKoebergModel()
-  useModelMode(parts, mode, showSite)
+  useModelMode(parts, mode, showSite, ghost)
   const group = useRef<Group>(null)
 
   const processLabels = useMemo<LabelItem[]>(() => {
@@ -41,13 +43,15 @@ export function Koeberg({ mode, sim, process, showSite = true, labelContainer = 
   }, [parts])
 
   const accidentLabels = useMemo<LabelItem[]>(() => {
+    // Regional labels only once the release is under way; before that they clutter the site views.
+    const after = (v: Vector3) => () => (sim.t >= EXPLOSION_T ? v : null)
     const items: LabelItem[] = PLACES.map((p) => {
       const o = offsetFromSite(p.lat, p.lon)
       const km = Math.hypot(o.x, o.z) / 1000
-      return { id: 'place-' + p.name, text: p.name, sub: `${km.toFixed(0)} km${p.population ? ' · ' + p.population : ''}`, position: [o.x, 30, o.z] as [number, number, number], minDist: 3000, className: 'k-label--place' }
+      return { id: 'place-' + p.name, text: p.name, sub: `${km.toFixed(0)} km${p.population ? ' · ' + p.population : ''}`, position: after(new Vector3(o.x, 30, o.z)), minDist: 3000, className: 'k-label--place' }
     })
-    items.push({ id: 'paz', text: '5 km · Precautionary Action Zone', sub: 'evacuate within 4 h', position: [0, 20, 5000], minDist: 3000, className: 'k-label--zone' })
-    items.push({ id: 'upz', text: '16 km · Urgent Protective Action Zone', sub: 'shelter, iodine, evacuate downwind sectors', position: [0, 20, 16000], minDist: 6000, className: 'k-label--zone' })
+    items.push({ id: 'paz', text: '5 km · Precautionary Action Zone', sub: 'evacuate within 4 h', position: after(new Vector3(0, 20, 5000)), minDist: 3000, className: 'k-label--zone' })
+    items.push({ id: 'upz', text: '16 km · Urgent Protective Action Zone', sub: 'shelter, iodine, evacuate downwind sectors', position: after(new Vector3(0, 20, 16000)), minDist: 6000, className: 'k-label--zone' })
     const front = new Vector3()
     items.push({
       id: 'front',
@@ -61,7 +65,7 @@ export function Koeberg({ mode, sim, process, showSite = true, labelContainer = 
       minDist: 2500,
       className: 'k-label--front',
     })
-    items.push({ id: 'breach', text: 'Unit 1 containment breach', position: parts.anchors.points.u1_dome_apex, maxDist: 2500, className: 'k-label--zone' })
+    items.push({ id: 'breach', text: 'Unit 1 containment breach', position: after(new Vector3(...parts.anchors.points.u1_dome_apex)), maxDist: 2500, className: 'k-label--zone' })
     return items
   }, [parts, sim])
 

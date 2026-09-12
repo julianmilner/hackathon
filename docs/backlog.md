@@ -14,6 +14,7 @@ Keep this short and ruthless. Move only the next few items into **Now**.
 ## Next
 
 - [ ] Define the smallest happy-path demo in `docs/demo.md`.
+- [ ] Place `<Koeberg>` in the city scene at 33.67644°S 18.43205°E with `showSite={false}` and check its height against the Google mesh; wire the accident footprint into the hazard verdict. See the Koeberg section of `docs/rendering.md`.
 - [ ] Drape the `public/data/heat/` layers over the 3D city as a transparent texture, and pass the clicked point's blended value plus its precinct's counts to the verdict prompt.
 
 ## Later / experiments

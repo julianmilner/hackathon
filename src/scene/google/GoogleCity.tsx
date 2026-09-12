@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef } from 'react'
+import { useContext, useEffect, useMemo, useRef } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { MathUtils, Matrix4, Vector3 } from 'three'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
@@ -40,6 +40,10 @@ const START_VIEWPOINT = WANT_INTRO ? INTRO_START : DEFAULT_VIEWPOINT
 
 const dracoLoader = new DRACOLoader()
 dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/')
+// TilesPlugin compares `args` shallowly and rebuilds the plugin when the reference changes, so
+// constructor arguments must be stable across renders. A fresh array literal per render would
+// recreate the Google auth plugin (losing its session token) every time the HUD updates.
+const GLTF_ARGS: ConstructorParameters<typeof GLTFExtensionsPlugin> = [{ dracoLoader }]
 
 type GeoPose = ReturnType<typeof cameraGeoPose>
 
@@ -174,6 +178,25 @@ function CameraFlight({ apiRef, onProgress, onReady }: Pick<Props, 'apiRef' | 'o
   return null
 }
 
+// Console hook promised in README.md: renderer memory and draw counts plus tile statistics.
+function TileStats() {
+  const tiles = useContext(TilesRendererContext)
+  const gl = useThree((s) => s.gl)
+  useEffect(() => {
+    if (!tiles) return
+    window.__cityStats = () => ({
+      ...gl.info.memory,
+      ...gl.info.render,
+      visibleTiles: tiles.visibleTiles.size,
+      loadProgress: tiles.loadProgress,
+    })
+    return () => {
+      delete window.__cityStats
+    }
+  }, [tiles, gl])
+  return null
+}
+
 function lerpAngle(a: number, b: number, t: number) {
   let d = (b - a) % (Math.PI * 2)
   if (d > Math.PI) d -= Math.PI * 2
@@ -182,6 +205,10 @@ function lerpAngle(a: number, b: number, t: number) {
 }
 
 export function GoogleCity({ apiKey, apiRef, onProgress, onReady, onError }: Props) {
+  const authArgs = useMemo<ConstructorParameters<typeof GoogleCloudAuthPlugin>>(
+    () => [{ apiToken: apiKey, autoRefreshToken: true, useRecommendedSettings: false }],
+    [apiKey],
+  )
   return (
     <Canvas
       flat
@@ -202,14 +229,15 @@ export function GoogleCity({ apiKey, apiRef, onProgress, onReady, onError }: Pro
           if (e.tile === null) onError(e.error.message || 'Google tileset failed to load')
         }}
       >
-        <TilesPlugin plugin={GoogleCloudAuthPlugin} args={[{ apiToken: apiKey, autoRefreshToken: true, useRecommendedSettings: false }]} />
-        <TilesPlugin plugin={GLTFExtensionsPlugin} args={[{ dracoLoader }]} />
+        <TilesPlugin plugin={GoogleCloudAuthPlugin} args={authArgs} />
+        <TilesPlugin plugin={GLTFExtensionsPlugin} args={GLTF_ARGS} />
         <TilesPlugin plugin={TileCompressionPlugin} />
         <TilesPlugin plugin={UpdateOnChangePlugin} />
         <TilesPlugin plugin={TilesFadePlugin} />
 
         <GlobeControls enableDamping={true} />
         <CameraFlight apiRef={apiRef} onProgress={onProgress} onReady={onReady} />
+        <TileStats />
         <TilesAttributionOverlay style={{ left: 'auto', right: 12, bottom: 12, fontSize: 11, opacity: 0.85 }} />
       </TilesRenderer>
     </Canvas>
