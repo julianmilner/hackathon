@@ -9,7 +9,7 @@ import { CITY_SIZE, SEA_LEVEL } from './city'
 
 const RESOLUTION = 256
 
-function Controls() {
+function Controls({ simRef }: { simRef: React.RefObject<TsunamiSimulation | null> }) {
   const { camera, gl } = useThree()
   const controls = useRef<OrbitControls | null>(null)
   useEffect(() => {
@@ -23,7 +23,20 @@ function Controls() {
     controls.current = c
     return () => c.dispose()
   }, [camera, gl])
-  useFrame(() => controls.current?.update())
+  useFrame(({ camera: cam, clock }) => {
+    controls.current?.update()
+    // Camera shake while the wave is up: scales with the wave height at the source.
+    const sim = simRef.current
+    if (sim?.running) {
+      const level = Math.max(0, sim.waveLevel(sim.time)) / Math.max(sim.wave.amplitude, 1)
+      const dist = cam.position.distanceTo(controls.current?.target ?? cam.position)
+      const amp = level * dist * 0.004
+      const t = clock.elapsedTime * 37
+      cam.position.x += Math.sin(t) * amp
+      cam.position.y += Math.sin(t * 1.3 + 1.0) * amp * 0.6
+      cam.position.z += Math.cos(t * 0.8) * amp
+    }
+  })
   return null
 }
 
@@ -123,7 +136,7 @@ export function Sandbox() {
         dpr={[1, 1.5]}
       >
         <color attach="background" args={['#0f1a2b']} />
-        <Controls />
+        <Controls simRef={simRef} />
         <SceneContent simRef={simRef} onReady={() => setReady(true)} />
       </Canvas>
 
@@ -131,8 +144,9 @@ export function Sandbox() {
         <p className="eyebrow">Simulation sandbox</p>
         <h1>Tsunami</h1>
         <p className="hint">
-          Stand-in city, sea to the west. The water is a GPU shallow-water simulation that reads a
-          top-down height field of the scene, so it funnels up streets and pools behind buildings.
+          Stand-in city, sea to the west. A GPU shallow-water simulation reads a top-down height
+          field of the scene, so the wall of water funnels up streets, slams into facades and
+          pools behind buildings. Tuned for drama, not for the insurance report.
         </p>
         <div className="actions">
           <button className="primary" onClick={trigger} disabled={!ready}>Trigger tsunami</button>
@@ -140,7 +154,7 @@ export function Sandbox() {
         </div>
         <label>
           Wave height <span>{wave.amplitude.toFixed(1)} m</span>
-          <input type="range" min={1} max={15} step={0.5} value={wave.amplitude}
+          <input type="range" min={1} max={30} step={0.5} value={wave.amplitude}
             onChange={(e) => setWave({ ...wave, amplitude: Number(e.target.value) })} />
         </label>
         <label>

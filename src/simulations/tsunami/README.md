@@ -63,9 +63,10 @@ through the ref. `sim.readState()` reads the depth and velocity texture back for
 
 ## Tuning notes
 
-- Defaults are for a 6 m wave on a 1.2 km patch. `maxSpeed` (8 m/s) caps flow so the wave does not
-  hammer buildings unrealistically; `friction` slows thin fast sheets; `drainRate` makes puddles
-  recede after the wave.
+- Defaults are tuned for drama: a 12 m wave with a long drawback, a near-vertical front, and a
+  14 m/s speed cap so it slams into facades and washes over the low-rise seafront. For something
+  closer to a real event use `amplitude` 3-6, `maxSpeed` 8 and `friction` 0.008. `drainRate` makes
+  puddles recede after the wave; `heightScale` exaggerates water height visually (keep it under 1.3).
 - When the wave hits a seafront facade it piles up to nearly twice its height, which is real
   run-up behaviour. That means a 6 m wave can wash over 10 m seafront buildings for a moment.
   Lower `amplitude` or `maxSpeed` if that looks wrong for a given pin.

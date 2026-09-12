@@ -52,6 +52,8 @@ export interface TsunamiOptions {
   maxSpeed?: number
   /** Rate (m/s) at which thin water above sea level drains away after the wave passes. */
   drainRate?: number
+  /** Visual exaggeration of water above sea level (1 = physical, 1.3 is already a lot). Rendering only. */
+  heightScale?: number
 }
 
 export interface WaveParams {
@@ -68,11 +70,11 @@ export interface WaveParams {
 }
 
 export const defaultWave: WaveParams = {
-  amplitude: 6,
-  drawbackTime: 8,
-  riseTime: 12,
-  holdTime: 40,
-  fallTime: 40,
+  amplitude: 12,
+  drawbackTime: 12,
+  riseTime: 4,
+  holdTime: 45,
+  fallTime: 60,
 }
 
 const SOURCE_EDGE_CODE: Record<SourceEdge, number> = { west: 1, east: 2, south: 3, north: 4 }
@@ -123,10 +125,11 @@ export class TsunamiSimulation {
       sourceEdge: 'west',
       timeScale: 4,
       gravity: 9.81,
-      drag: 0.01,
-      friction: 0.008,
-      maxSpeed: 8,
+      drag: 0.005,
+      friction: 0.004,
+      maxSpeed: 14,
       drainRate: 0.01,
+      heightScale: 1.0,
       ...options,
     }
     const { resolution, size } = this.options
@@ -212,6 +215,7 @@ export class TsunamiSimulation {
         uTexel: { value: texel },
         uDx: { value: dx },
         uSeaLevel: { value: this.options.seaLevel },
+        uHeightScale: { value: this.options.heightScale },
         uSunDir: { value: new Vector3(0.4, 1, 0.3).normalize() },
         uShallowColor: { value: new Color('#3aa7c4') },
         uDeepColor: { value: new Color('#0b3556') },

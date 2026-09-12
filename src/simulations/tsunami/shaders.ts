@@ -143,6 +143,7 @@ uniform sampler2D uTerrain;
 uniform vec2 uTexel;
 uniform float uDx;
 uniform float uSeaLevel;
+uniform float uHeightScale;
 varying vec3 vWorldPos;
 varying vec3 vNormal;
 varying float vDepth;
@@ -150,10 +151,13 @@ varying float vSpeed;
 varying float vGround;
 const float EPS = 0.02;
 
+// Drama: stretch everything above the calm sea so the wall of water reads from far away.
+float dramatise(float eta) { return eta > uSeaLevel ? uSeaLevel + (eta - uSeaLevel) * uHeightScale : eta; }
+
 float wetSurface(vec2 uv, float fallback) {
   vec4 s = texture2D(uState, uv);
   if (s.r < EPS) return fallback;
-  return texture2D(uTerrain, uv).r + s.r;
+  return dramatise(texture2D(uTerrain, uv).r + s.r);
 }
 
 void main() {
@@ -183,6 +187,10 @@ void main() {
     if (best < 1e8) { eta = best; h = bd; vel = bv; }
     else { eta = min(T, uSeaLevel) - 3.0; h = 0.0; }
   }
+  // Exaggerate, but never lift a borrowed (dry) vertex above its own ground: that would show
+  // water on roofs the wave has not actually reached.
+  float dram = dramatise(eta);
+  eta = (s.r < EPS) ? min(dram, max(T - 0.5, eta)) : dram;
 
   float eL = wetSurface(uv - vec2(uTexel.x, 0.0), eta);
   float eR = wetSurface(uv + vec2(uTexel.x, 0.0), eta);
@@ -243,8 +251,13 @@ void main() {
   // Foam where the flow is breaking (Froude number near or above 1) and along the thin leading edge
   float froude = vSpeed / sqrt(9.81 * max(vDepth, 0.05));
   float nz = noise(vWorldPos.xz * 0.25 + vec2(uTime * 0.5, -uTime * 0.35));
-  float foam = smoothstep(0.7, 1.6, froude) * 0.9 + smoothstep(0.35, 0.0, vDepth) * inland * 0.7;
-  foam = clamp(foam * (0.5 + 0.9 * nz), 0.0, 1.0);
+  float streaks = noise(vWorldPos.xz * vec2(0.08, 0.6) + vec2(uTime * 2.5, 0.0));
+  float shallow = 1.0 - smoothstep(5.0, 12.0, vDepth);       // no whitewater out in deep sea
+  float foam = smoothstep(0.55, 1.2, froude) * 1.1
+             + smoothstep(0.6, 0.0, vDepth) * inland * 0.9
+             + smoothstep(4.0, 9.0, vSpeed) * streaks * shallow * 0.9   // spray streaks on fast shallow water
+             + inland * smoothstep(1.0, 5.0, vDepth) * 0.2;             // flooded streets churn
+  foam = clamp(foam * (0.6 + 0.8 * nz), 0.0, 1.0);
 
   vec3 color = base * diff + spec + fresnel * 0.15;
   color = mix(color, uFoamColor, foam);
