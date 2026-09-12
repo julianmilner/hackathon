@@ -90,7 +90,7 @@ export class KaijuActor {
 
   constructor(options: KaijuActorOptions = {}, renderer?: WebGLRenderer) {
     const {
-      url = '/models/kaiju.glb',
+      url = `${import.meta.env.BASE_URL}models/kaiju.glb`,
       spawn = { x: -500, z: 0 },
       target = { x: 0, z: 0 },
       height = 300,

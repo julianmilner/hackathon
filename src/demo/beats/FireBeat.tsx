@@ -24,7 +24,7 @@ export function FireBeat({ state, terrain }: Props) {
   const sim = useRef<FireSimulation>(null)
   const centre = useMemo(() => toLocal(PLACES.fireCentre.lat, PLACES.fireCentre.lon), [])
   const frame = useMemo(() => new Matrix4().makeTranslation(centre.x, 0, centre.z), [centre])
-  const gltf = useLoader(GLTFLoader, '/models/fynbos.glb')
+  const gltf = useLoader(GLTFLoader, `${import.meta.env.BASE_URL}models/fynbos.glb`)
   const fynbos = useRef<Fynbos | null>(null)
   const run = useRef(-1)
   const lit = useRef(false)

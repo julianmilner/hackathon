@@ -36,7 +36,7 @@ function Controls() {
 
 /** Loads the Blender-made plants and scatters them once the terrain has been sampled. */
 function FynbosLayer({ simRef, ready }: { simRef: React.RefObject<FireSimulation | null>; ready: boolean }) {
-  const gltf = useLoader(GLTFLoader, '/models/fynbos.glb')
+  const gltf = useLoader(GLTFLoader, `${import.meta.env.BASE_URL}models/fynbos.glb`)
   const layer = useRef<Fynbos | null>(null)
   useEffect(() => {
     const sim = simRef.current

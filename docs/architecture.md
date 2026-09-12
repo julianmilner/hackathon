@@ -14,7 +14,7 @@ Document only choices that guide implementation. Diagrams are optional until com
 - **Backend / API:**
 - **Data / auth:**
 - **AI models or APIs:** Claude Fable 5.1 (`claude-fable-5-1`) via the Anthropic TypeScript SDK, proposed; not yet decided.
-- **Deployment:**
+- **Deployment:** static Vite build published to GitHub Pages at https://julianmilner.github.io/hackathon/ by `.github/workflows/pages.yml` on every push to `main` or `deploy`. The `pages` build mode sets `base` to `/hackathon/`; asset URLs in code must go through `import.meta.env.BASE_URL`. No server.
 
 ## System boundaries
 

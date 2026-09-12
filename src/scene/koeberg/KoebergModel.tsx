@@ -3,8 +3,8 @@ import { useLoader } from '@react-three/fiber'
 import { FileLoader, Group, Mesh, MeshStandardMaterial, Object3D, Quaternion, Vector3 } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
-export const MODEL_URL = '/models/koeberg.glb'
-export const ANCHORS_URL = '/models/koeberg.anchors.json'
+export const MODEL_URL = `${import.meta.env.BASE_URL}models/koeberg.glb`
+export const ANCHORS_URL = `${import.meta.env.BASE_URL}models/koeberg.anchors.json`
 
 export interface Anchors {
   points: Record<string, [number, number, number]>

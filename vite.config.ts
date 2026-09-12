@@ -1,7 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-export default defineConfig({
+// `npm run build:pages` (mode 'pages') serves from https://<user>.github.io/hackathon/,
+// everything else stays at '/'. Asset URLs in code go through import.meta.env.BASE_URL.
+export default defineConfig(({ mode }) => ({
+  base: mode === 'pages' ? '/hackathon/' : '/',
   plugins: [react()],
   build: {
     rollupOptions: {
@@ -21,4 +24,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))

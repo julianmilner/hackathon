@@ -28,6 +28,10 @@ npm run build
 
 Simulation sandboxes run on the same dev server, for example http://localhost:5173/tsunami.html.
 
+## Public demo link
+
+Every push to `main` or `deploy` publishes the site to **https://julianmilner.github.io/hackathon/** (the GitHub Actions workflow in `.github/workflows/pages.yml`). The standalone pages live under the same prefix, for example `/hackathon/demo.html`, `/hackathon/tsunami.html` and `/hackathon/crime.html`. To refresh the presenter's link, merge into `deploy` and push. `npm run build:pages` produces the same build locally; asset URLs in code must be built from `import.meta.env.BASE_URL`, not `/models/...`, or they 404 on Pages. The photoreal renderer only works there once the Google key's referrer allowlist includes `https://julianmilner.github.io/*`; until then the site drops to the terrain preview.
+
 Standalone pages in dev: `/koeberg.html` is the Koeberg power station model (exterior, inside-the-process view and accident timeline). To rebuild its GLB after editing `blender/koeberg.py`:
 
 ```sh

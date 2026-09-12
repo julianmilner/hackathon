@@ -110,3 +110,11 @@ Record a decision when it changes the work other people or agents should do. Kee
 **Why:** The Google mesh has no interior and no separable dome, so neither the process view nor the breach can come from it. A scripted model rebuilds in eight seconds, keeps every dimension traceable to a source, and exports named nodes and anchor paths that the three.js layer animates. Framing the failure as loss of cooling and a chemical explosion is what the physics allows for 4.4 % enriched fuel and is what judges will hear from anyone who knows nuclear.
 
 **Consequences:** The station is a separate `<Koeberg>` component in the local metre frame that the city scene can place at the site coordinate; `showSite={false}` hides the terrace and breakwaters over the photoreal mesh. Footprint planes need a depth or height-field treatment over real terrain. Blender 5 is a build-time dependency for the model only; the GLB is committed.
+
+## 2026-09-12 — The presenter's link is a GitHub Pages build of the `deploy` branch
+
+**Decision:** Publish the static Vite build to GitHub Pages (`https://julianmilner.github.io/hackathon/`) from a GitHub Actions workflow that runs on pushes to `main` and `deploy`. `deploy` is a stable branch the team merges into deliberately; the working branches are not deployed on every push.
+
+**Why:** The presenter needed a shareable link while the working tree was mid-change and did not build. A separate branch keeps the public link on a known-good build, and Pages costs nothing and needs no server, which fits an all-in-the-browser app.
+
+**Consequences:** The site is served from a `/hackathon/` prefix, so hard-coded absolute asset paths break; `vite.config.ts` sets `base` in the `pages` build mode and code must use `import.meta.env.BASE_URL`. The Google Map Tiles key is baked into the public bundle (as any browser key is) and its referrer allowlist must include the Pages origin for the photoreal view to work there; otherwise the terrain preview is what the audience sees.
