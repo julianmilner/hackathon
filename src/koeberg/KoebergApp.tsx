@@ -6,10 +6,10 @@ import type { SimState } from '../scene/koeberg/Accident'
 import { Koeberg } from '../scene/koeberg/Koeberg'
 import type { ViewMode } from '../scene/koeberg/KoebergModel'
 import type { ProcessState } from '../scene/koeberg/ProcessFlow'
-import { ACCIDENT_PHASES, EXPLOSION_T, FACTS, KOEBERG, phaseAt, PROCESS_STEPS, WIND_PRESETS } from '../scene/koeberg/site'
+import { ACCIDENT_PHASES, EXPLOSION_T, FACTS, KOEBERG, PHASE_VIEWS, phaseAt, PROCESS_STEPS, WIND_PRESETS } from '../scene/koeberg/site'
 import { Ocean } from '../scene/terrain/Ocean'
 import { SkyDome } from '../scene/terrain/SkyDome'
-import { findView, Rig, VIEWS, type View } from './Rig'
+import { findView, plumeView, regionView, Rig, U1_DOME_VIEW, VIEWS, type View } from './Rig'
 
 // Morning sun from the east-north-east so the turbine hall façade and domes are lit in the front view.
 const SUN_AZIMUTH = 75
@@ -63,23 +63,53 @@ export function KoebergApp() {
   // Cheap 8 Hz mirror of the sim clock for the HUD.
   const [hudT, setHudT] = useState(sim.t)
   const [hudPlaying, setHudPlaying] = useState(sim.playing)
-  useEffect(() => {
-    const id = window.setInterval(() => { setHudT(sim.t); setHudPlaying(sim.playing) }, 125)
-    return () => window.clearInterval(id)
-  }, [sim])
+
+  const resolveView = useCallback((id: string): View | undefined => {
+    if (id === 'plume') return plumeView(wind.fromDeg)
+    if (id === 'region') return regionView(wind.fromDeg)
+    if (id === 'u1dome') return U1_DOME_VIEW
+    return findView(id)
+  }, [wind])
 
   const goView = useCallback((id: string) => {
-    const v = findView(id)
+    const v = resolveView(id)
     if (!v) return
     setView(v)
     setViewNonce((n) => n + 1)
-  }, [])
+  }, [resolveView])
+
+  // Guided camera: the accident timeline flies to whatever each phase needs the viewer to see,
+  // until the user takes the controls.
+  const [follow, setFollow] = useState(true)
+  const guided = useRef<{ lastPhase: number; lastT: number }>({ lastPhase: -1, lastT: 0 })
+  const takeControl = useCallback(() => setFollow(false), [])
+  const guide = useCallback((t: number) => {
+    const g = guided.current
+    if (t < g.lastT - 0.2) g.lastPhase = -1 // scrubbed backwards: allow the phase view again
+    g.lastT = t
+    // fly 1.5 s early so the camera arrives before the moment
+    const ph = phaseAt(t + 1.5)
+    if (ph.t0 !== g.lastPhase) {
+      g.lastPhase = ph.t0
+      const id = PHASE_VIEWS[ph.t0]
+      if (id) goView(id)
+    }
+  }, [goView])
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setHudT(sim.t)
+      setHudPlaying(sim.playing)
+      if (mode === 'accident' && follow) guide(sim.t)
+    }, 125)
+    return () => window.clearInterval(id)
+  }, [sim, mode, follow, guide])
 
   const chooseMode = useCallback((m: ViewMode) => {
     setMode(m)
     setActiveStep(null)
     if (m === 'inside') goView('inside')
-    if (m === 'accident') { sim.t = 0; sim.playing = true; goView('domes') }
+    if (m === 'accident') { sim.t = 0; sim.playing = true; setFollow(true); guided.current.lastPhase = -1 }
     if (m === 'exterior') goView('photo')
   }, [goView, sim])
 
@@ -95,6 +125,7 @@ export function KoebergApp() {
 
   const phase = phaseAt(hudT)
   const explosion = hudT >= EXPLOSION_T
+  const ghostShells = mode === 'accident' && hudT >= 2 && hudT < EXPLOSION_T
 
   return (
     <div className="k-app">
@@ -128,9 +159,9 @@ export function KoebergApp() {
           <Ocean sunDir={SUN_DIR} skyColor={SKY_HORIZON} heightField={null} deepColor="#0e4a70" />
         </group>
         <Suspense fallback={null}>
-          <Koeberg mode={mode} sim={sim} process={process} labelContainer={labelsOn ? labelEl : null} activeStep={activeStep} />
+          <Koeberg mode={mode} sim={sim} process={process} ghost={ghostShells} labelContainer={labelsOn ? labelEl : null} activeStep={activeStep} />
         </Suspense>
-        <Rig view={view} viewNonce={viewNonce} sim={sim} />
+        <Rig view={view} viewNonce={viewNonce} sim={sim} onUserInteract={takeControl} />
       </Canvas>
       <div className="k-labels" ref={labelLayer} />
 
@@ -188,6 +219,9 @@ export function KoebergApp() {
               <button className="k-play" onClick={() => { sim.playing = !sim.playing; setHudPlaying(sim.playing) }} aria-label={hudPlaying ? 'Pause' : 'Play'}>
                 {hudPlaying ? '❚❚' : '▶'}
               </button>
+              <button className={'k-follow' + (follow ? ' is-active' : '')} onClick={() => { setFollow(!follow); guided.current.lastPhase = -1 }} title="Fly the camera to what each phase needs you to see">
+                {follow ? 'Camera follows the story' : 'Follow the story'}
+              </button>
               <input
                 type="range" min={0} max={90} step={0.1} value={hudT}
                 onChange={(e) => { sim.t = Number(e.target.value); setHudT(sim.t) }}
@@ -222,8 +256,9 @@ export function KoebergApp() {
 
       <nav className="k-views" aria-label="Camera">
         {VIEWS.map((v) => (
-          <button key={v.id} className={v.id === view.id ? 'is-active' : ''} onClick={() => goView(v.id)}>{v.name}</button>
+          <button key={v.id} className={v.id === view.id ? 'is-active' : ''} onClick={() => { takeControl(); goView(v.id) }}>{v.name}</button>
         ))}
+        <button className={view.id === 'region' ? 'is-active' : ''} onClick={() => { takeControl(); goView('region') }}>Region</button>
         <button className={labelsOn ? 'is-active' : ''} onClick={() => setLabelsOn((l) => !l)}>Labels</button>
       </nav>
 

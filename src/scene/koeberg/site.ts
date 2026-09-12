@@ -112,6 +112,17 @@ export const ACCIDENT_PHASES: AccidentPhase[] = [
   { t0: EXPLOSION_T + 26, title: 'Fallout over the city', storyTime: 'T + 8–24 h', body: 'A Chernobyl- or Fukushima-scale release would make a downwind band tens of kilometres long uninhabitable for years. Cape Town has three roads out: the N1, the N2 and the coast road via Gordon’s Bay.' },
 ]
 
+// Where the camera should be for each phase (view ids resolved by the app; 'plume' and 'region' follow the wind).
+export const PHASE_VIEWS: Record<number, string> = {
+  0: 'photo',
+  2: 'turbine',
+  8: 'inside',
+  14: 'u1dome',
+  [EXPLOSION_T]: 'domes',
+  [EXPLOSION_T + 6]: 'plume',
+  [EXPLOSION_T + 26]: 'region',
+}
+
 export function phaseAt(t: number): AccidentPhase {
   let p = ACCIDENT_PHASES[0]
   for (const ph of ACCIDENT_PHASES) if (t >= ph.t0) p = ph

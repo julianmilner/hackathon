@@ -118,9 +118,9 @@ export function useKoebergModel(): ModelParts {
 export type ViewMode = 'exterior' | 'inside' | 'accident'
 
 // Applies a view mode: solid exterior, or ghosted exterior with the interior showing.
-export function useModelMode(parts: ModelParts, mode: ViewMode, showSite: boolean) {
+export function useModelMode(parts: ModelParts, mode: ViewMode, showSite: boolean, forceGhost = false) {
   useEffect(() => {
-    const ghost = mode === 'inside'
+    const ghost = mode === 'inside' || forceGhost
     for (const p of parts.exterior) {
       p.mesh.material = ghost ? p.xray : p.solid
       p.mesh.castShadow = !ghost
@@ -133,9 +133,9 @@ export function useModelMode(parts: ModelParts, mode: ViewMode, showSite: boolea
       if (deck && ghost) p.mesh.material.opacity = 0.3
     }
     for (const p of parts.culverts) {
-      // Underground seawater tunnels: only meaningful in the inside view.
-      p.mesh.visible = mode === 'inside'
+      // Underground seawater tunnels: only meaningful when the shells are see-through.
+      p.mesh.visible = ghost
     }
     for (const m of parts.site) m.visible = showSite
-  }, [parts, mode, showSite])
+  }, [parts, mode, showSite, forceGhost])
 }

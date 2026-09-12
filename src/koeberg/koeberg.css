@@ -62,10 +62,12 @@ button, select, input { font: inherit; }
 
 .k-accident h2 { margin: 2px 0 4px; font-size: 18px; font-weight: 650; }
 .k-phase-clock { font-variant-numeric: tabular-nums; font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--k-accent); }
-.k-timeline { position: relative; display: flex; align-items: center; gap: 10px; margin: 14px 0 8px; }
+.k-timeline { position: relative; display: flex; align-items: center; gap: 10px; margin: 14px 0 8px; flex-wrap: wrap; }
+.k-follow { order: 3; flex-basis: 100%; margin-top: 12px; border: 1px solid var(--k-line); background: rgba(255,255,255,0.05); color: var(--k-muted); border-radius: 8px; padding: 7px 10px; cursor: pointer; font-size: 12px; }
+.k-follow.is-active { color: var(--k-text); border-color: var(--k-accent); background: rgba(255,182,74,0.12); }
 .k-play { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--k-line); background: rgba(255,255,255,0.08); color: var(--k-text); cursor: pointer; flex: none; font-size: 12px; }
 .k-timeline input[type=range] { flex: 1; accent-color: var(--k-accent); }
-.k-ticks { position: absolute; left: 44px; right: 8px; bottom: -6px; height: 8px; }
+.k-ticks { position: absolute; left: 44px; right: 8px; top: 30px; height: 8px; }
 .k-ticks button { position: absolute; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; border: 0; background: var(--k-muted); cursor: pointer; padding: 0; }
 .k-ticks button:hover { background: var(--k-accent); }
 .k-wind { display: flex; flex-direction: column; gap: 4px; margin-top: 16px; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--k-muted); }

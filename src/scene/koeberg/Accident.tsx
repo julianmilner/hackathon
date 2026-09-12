@@ -377,7 +377,7 @@ export function Accident({ parts, sim, process, active }: Props) {
       const dir = plumeDirection(sim.wind.fromDeg)
       sim.storySeconds = Math.max(0, te - 1.5) * STORY_RATE
       sim.plumeFront = sim.storySeconds * sim.wind.speed
-      placePlume(plume, u1, dir, sim.wind.speed, sim.storySeconds, camera.position.distanceTo(_v2.set(u1.x, 0, u1.z)) < 2500 ? 0.25 : 1)
+      placePlume(plume, u1, dir, sim.wind.speed, sim.storySeconds, camera.position.distanceTo(_v2.set(u1.x, 0, u1.z)) < 2500 ? 0.5 : 1)
       const fp = footprint.material as ShaderMaterial
       fp.uniforms.uDir.value = [dir.x, -dir.z] // plane local y is north
       fp.uniforms.uFront.value = sim.plumeFront
