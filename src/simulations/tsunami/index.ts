@@ -1,0 +1,6 @@
+export { TsunamiSimulation, defaultWave } from './TsunamiSimulation'
+export type { TsunamiOptions, WaveParams, SourceEdge } from './TsunamiSimulation'
+export { sampleHeightField, heightFieldFromFunction } from './HeightField'
+export type { HeightField, HeightFieldOptions } from './HeightField'
+export { Tsunami } from './Tsunami'
+export type { TsunamiProps } from './Tsunami'

@@ -26,6 +26,8 @@ npm run lint
 npm run build
 ```
 
+Simulation sandboxes run on the same dev server, for example http://localhost:5173/tsunami.html.
+
 ## Documentation
 
 - [Product vision](docs/vision.md) — agreed problem, user, solution, and success criteria.
@@ -35,3 +37,4 @@ npm run build
 - [Architecture](docs/architecture.md) — technical boundaries and major choices.
 - [Demo plan](docs/demo.md) — pitch and click-path for judges.
 - [Rendering](docs/rendering.md) — how the 3D city is rendered, costs, and constraints.
+- [Tsunami simulation](src/simulations/tsunami/README.md) — standalone GPU shallow-water module and its sandbox page.

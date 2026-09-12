@@ -45,3 +45,12 @@ Record a decision when it changes the work other people or agents should do. Kee
 **Why:** Flow between buildings is achievable in about a day on top of the height field we already need, and it is the moment judges will remember. The Google mesh has no separable buildings, so collapse can only be faked with grey proxy boxes or stretched textures, both of which undo the photoreal look we chose the renderer for.
 
 **Consequences:** Stage two starts only after the click-to-verdict loop works. Nobody spends time on building destruction. Details in `docs/rendering.md`.
+
+## 2026-09-12 — Simulations run in the browser as standalone modules, not Blender bakes
+
+**Decision:** Every hazard simulation is a three.js module under `src/simulations/<name>/` with its own sandbox page and a stand-in scene, following the contract in `src/simulations/README.md`. The tsunami is a GPU shallow-water solver over a height field sampled from the live scene. No Blender or offline fluid bakes.
+
+**Why:** The effect we want is water interacting with the real city: flowing between buildings, stalling on slopes, pooling. That needs the geometry, and the Google mesh only exists at runtime in the client. A Blender bake is a fixed animation of a fixed mesh that cannot react to a pin the judge chooses, cannot be depth-tested against streamed tiles, and would cost hours per shot. Building standalone with a stand-in city lets the simulation and the map module progress in parallel and keeps the primary demo path untouched.
+
+**Consequences:** Map and simulation meet at one seam: a local east-north-up frame plus `sampleTerrain(tilesGroup)` once tiles have loaded. React is pinned to 19.2 because react-three-fiber does not yet accept 19.3. Sandboxes are extra Vite entries, registered in `vite.config.ts`.
+

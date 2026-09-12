@@ -10,13 +10,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "latest",
-    "react-dom": "latest"
+    "@react-three/fiber": "^9.7.0",
+    "react": "19.2",
+    "react-dom": "19.2",
+    "three": "^0.186.0"
   },
   "devDependencies": {
     "@eslint/js": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
+    "@types/react": "19.2",
+    "@types/react-dom": "19.2",
+    "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "latest",
     "eslint": "latest",
     "eslint-plugin-react-hooks": "latest",

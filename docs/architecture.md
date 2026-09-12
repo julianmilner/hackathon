@@ -5,7 +5,8 @@ Document only choices that guide implementation. Diagrams are optional until com
 ## Stack
 
 - **Frontend:** Vite, React, and TypeScript
-- **3D map:** three.js with 3DTilesRendererJS and react-three-fiber, streaming Google Photorealistic 3D Tiles. Simulations (tsunami, fire, earthquake) are custom three.js layers in the same scene. See `docs/rendering.md`.
+- **3D map:** three.js with 3DTilesRendererJS and react-three-fiber, streaming Google Photorealistic 3D Tiles. See `docs/rendering.md`.
+- **Simulations:** standalone three.js modules under `src/simulations/<name>/`, each with a sandbox page (for example `/tsunami.html`). They own a group in a local east-north-up frame and sample terrain from whatever object they are given, so the map places them with the tiles' ENU helper and calls `sampleTerrain(tilesGroup)`. Reference implementation and integration notes in `src/simulations/tsunami/README.md`.
 - **Data preparation:** leafmap or geopandas in a notebook, exporting GeoJSON into the repo. Not part of the app.
 - **Backend / API:**
 - **Data / auth:**

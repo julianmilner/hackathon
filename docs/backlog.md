@@ -19,8 +19,9 @@ Keep this short and ruthless. Move only the next few items into **Now**.
 - [ ] Compare mode: two pins, one head-to-head verdict.
 - [ ] "Think harder" button rerunning the verdict at a higher effort level with summarised thinking shown.
 - [ ] World mode using tectonic plates, earthquake catalogue and life expectancy.
-- [ ] Tsunami stage one: water sheet shader depth-tested against the city mesh, stalling on rising ground, parameters chosen by the model.
-- [ ] Tsunami stage two: GPU shallow-water simulation so water flows between buildings, plus debris and damage tint. Only after the click-to-verdict loop works. See `docs/rendering.md`.
+- [x] Tsunami standalone module and sandbox (`/tsunami.html`): GPU shallow-water flow between buildings over a sampled height field, model-chosen wave profile. See `src/simulations/tsunami/README.md`.
+- [ ] Tsunami in the world: place over the Waterfront or Muizenberg pin, set local sea level, sample the Google mesh after tiles load.
+- [ ] Tsunami polish: debris and floating objects, damage tint on the flooded mesh, momentum advection if the flow looks too pressure-driven.
 
 ## Parked
 
