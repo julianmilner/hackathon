@@ -199,8 +199,9 @@ export function Sandbox() {
         <p className="eyebrow">Simulation sandbox</p>
         <h1>Kaiju</h1>
         <p className="hint">
-          A Claude-themed kaiju surfaces from the sea, wades ashore on the same height field the
-          tsunami uses, and smashes the cream house. Built from code in Blender; see tools/blender/kaiju.py.
+          Clawd, the Claude mascot, at three hundred metres. It surfaces from the sea, wades ashore on
+          the same height field the tsunami uses, and body-slams the cream house. Built from code in
+          Blender; see tools/blender/kaiju.py.
         </p>
         <div className="actions">
           <button className="primary" onClick={playBeat} disabled={!ready}>Tsunami, then kaiju</button>

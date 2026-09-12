@@ -54,6 +54,8 @@ export interface TsunamiOptions {
   drainRate?: number
   /** Visual exaggeration of water above sea level (1 = physical, 1.3 is already a lot). Rendering only. */
   heightScale?: number
+  /** 1 hides undisturbed water over the sea floor so a scene's own ocean shows through; 0 draws the whole patch. */
+  calmFade?: number
 }
 
 export interface WaveParams {
@@ -130,6 +132,7 @@ export class TsunamiSimulation {
       maxSpeed: 14,
       drainRate: 0.01,
       heightScale: 1.0,
+      calmFade: 0,
       ...options,
     }
     const { resolution, size } = this.options
@@ -222,6 +225,7 @@ export class TsunamiSimulation {
         uMudColor: { value: new Color('#8d8360') },
         uFoamColor: { value: new Color('#eef6f8') },
         uTime: { value: 0 },
+        uCalmFade: { value: this.options.calmFade },
       },
       transparent: true,
       depthWrite: true,

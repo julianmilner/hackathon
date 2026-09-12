@@ -16,11 +16,13 @@ export interface KoebergProps {
   activeStep?: string | null
   position?: [number, number, number]
   rotation?: [number, number, number]
+  // Regional fallout footprint and zone rings; see Accident.
+  region?: boolean
 }
 
 // The whole station: model, process flow, accident timeline and labels. Drop it into any scene
 // at the site position; its frame is metres, y up, x east, z south, origin at the site centroid.
-export function Koeberg({ mode, sim, process, showSite = true, labelContainer = null, activeStep = null, position = [0, 0, 0], rotation = [0, 0, 0] }: KoebergProps) {
+export function Koeberg({ mode, sim, process, showSite = true, labelContainer = null, activeStep = null, position = [0, 0, 0], rotation = [0, 0, 0], region = true }: KoebergProps) {
   const parts = useKoebergModel()
   useModelMode(parts, mode, showSite)
   const group = useRef<Group>(null)
@@ -69,7 +71,7 @@ export function Koeberg({ mode, sim, process, showSite = true, labelContainer = 
     <group ref={group} position={position} rotation={rotation}>
       <primitive object={parts.scene} />
       <ProcessFlow parts={parts} state={process} visible={mode !== 'exterior'} />
-      <Accident parts={parts} sim={sim} process={process} active={mode === 'accident'} />
+      <Accident parts={parts} sim={sim} process={process} active={mode === 'accident'} region={region} />
       <Labels items={labels} container={labelContainer} parent={group} activeId={activeStep} />
     </group>
   )

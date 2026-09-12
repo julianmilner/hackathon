@@ -15,9 +15,15 @@ Conventions
     Idle (loop), Walk (loop), Rise, Attack, Roar, Stomp.
   Event timing used by src/simulations/kaiju/KaijuBehaviour.ts is documented in CLIP_EVENTS.
 
-Claude theme: terracotta hide, cream belly and jaw, charcoal claws, glowing cream dorsal
-plates and a glowing Claude starburst on the chest.
+Two styles, chosen with --style:
+- clawd (default): a true-to-mascot Clawd, the Claude Code mascot, at kaiju scale. A squat
+  terracotta rounded blob with two small dark eyes and two stubby feet. No arms, tail or mouth.
+- kaiju: the earlier Godzilla-style body in the Claude palette (cream belly and jaw, glowing
+  dorsal plates, Claude starburst on the chest, mascot-style face).
+Both share the same 25-bone rig and the same six clips, so the behaviour script is unchanged.
 """
+
+STYLE = 'clawd'  # set from --style in main()
 
 import argparse
 import math
@@ -63,27 +69,31 @@ MAT = {m[0]: i for i, m in enumerate(MATERIALS)}
 
 V = Vector
 
-HIPS = V((0, 0.0, 4.7))
-SPINE = V((0, -0.15, 5.9))
-CHEST = V((0, -0.35, 7.1))
-NECK = V((0, -0.55, 8.25))
-HEAD = V((0, -0.9, 8.95))
-HEAD_END = V((0, -1.7, 9.55))
-JAW = V((0, -0.9, 8.5))
-JAW_END = V((0, -2.2, 8.25))
 
-HIP_L = V((0.85, 0.05, 4.55))
-KNEE_L = V((1.0, -0.4, 2.7))
-ANKLE_L = V((1.05, 0.05, 0.95))
-TOE_L = V((1.05, -1.6, 0.3))
+def joints_kaiju():
+    """Godzilla-style body, about 10 units tall."""
+    return dict(
+        HIPS=V((0, 0.0, 4.7)), SPINE=V((0, -0.15, 5.9)), CHEST=V((0, -0.35, 7.1)), NECK=V((0, -0.55, 8.25)),
+        HEAD=V((0, -0.9, 8.95)), HEAD_END=V((0, -1.7, 9.55)), JAW=V((0, -0.9, 8.5)), JAW_END=V((0, -2.2, 8.25)),
+        HIP_L=V((0.85, 0.05, 4.55)), KNEE_L=V((1.0, -0.4, 2.7)), ANKLE_L=V((1.05, 0.05, 0.95)), TOE_L=V((1.05, -1.6, 0.3)),
+        SHOULDER_IN_L=V((0.45, -0.4, 7.7)), SHOULDER_L=V((1.6, -0.35, 7.55)), ELBOW_L=V((2.0, -0.7, 6.2)),
+        WRIST_L=V((1.95, -1.85, 5.65)), HAND_END_L=V((1.9, -2.6, 5.35)),
+        TAIL=[V((0, 0.55, 4.5)), V((0, 1.9, 4.05)), V((0, 3.3, 3.45)), V((0, 4.6, 2.7)), V((0, 5.75, 1.9)), V((0, 6.7, 1.2))],
+    )
 
-SHOULDER_IN_L = V((0.45, -0.4, 7.7))
-SHOULDER_L = V((1.6, -0.35, 7.55))
-ELBOW_L = V((2.0, -0.7, 6.2))
-WRIST_L = V((1.95, -1.85, 5.65))
-HAND_END_L = V((1.9, -2.6, 5.35))
 
-TAIL = [V((0, 0.55, 4.5)), V((0, 1.9, 4.05)), V((0, 3.3, 3.45)), V((0, 4.6, 2.7)), V((0, 5.75, 1.9)), V((0, 6.7, 1.2))]
+def joints_clawd():
+    """Clawd: a wide loaf of a body on two stubby legs, about 4.8 units tall. The spine chain runs
+    straight up the middle so the loaf can bob, twist and lean. Arm, jaw and tail bones exist for
+    rig compatibility only; nothing is bound to them."""
+    return dict(
+        HIPS=V((0, 0, 1.9)), SPINE=V((0, 0, 2.7)), CHEST=V((0, 0, 3.5)), NECK=V((0, 0, 4.1)),
+        HEAD=V((0, 0, 4.5)), HEAD_END=V((0, 0, 5.0)), JAW=V((0, -1.0, 2.6)), JAW_END=V((0, -1.8, 2.4)),
+        HIP_L=V((1.1, 0.2, 1.5)), KNEE_L=V((1.15, 0.0, 0.85)), ANKLE_L=V((1.2, 0.05, 0.4)), TOE_L=V((1.2, -0.9, 0.2)),
+        SHOULDER_IN_L=V((0.8, 0, 3.8)), SHOULDER_L=V((2.4, 0, 3.8)), ELBOW_L=V((2.9, -0.3, 3.0)),
+        WRIST_L=V((2.9, -0.6, 2.4)), HAND_END_L=V((2.9, -0.8, 2.0)),
+        TAIL=[V((0, 1.5, 2.4)), V((0, 2.1, 2.3)), V((0, 2.6, 2.2)), V((0, 3.0, 2.1)), V((0, 3.3, 2.0)), V((0, 3.5, 1.9))],
+    )
 
 
 def mirror(v):
@@ -103,28 +113,35 @@ def side_bones(side, sign):
     ]
 
 
-BONES = [
-    ('Hips', HIPS, SPINE, None),
-    ('Spine', SPINE, CHEST, 'Hips'),
-    ('Chest', CHEST, NECK, 'Spine'),
-    ('Neck', NECK, HEAD, 'Chest'),
-    ('Head', HEAD, HEAD_END, 'Neck'),
-    ('Jaw', JAW, JAW_END, 'Head'),
-]
-BONES += side_bones('L', 1) + side_bones('R', -1)
-BONES += [(f'Tail.{i + 1}', TAIL[i], TAIL[i + 1], 'Hips' if i == 0 else f'Tail.{i}') for i in range(5)]
-BONE_SEG = {name: (head, tail) for name, head, tail, _ in BONES}
-BONE_NAMES = [b[0] for b in BONES]
+def configure_skeleton(style):
+    """Publish the joint constants and bone tables for the chosen style as module globals."""
+    globals().update(joints_kaiju() if style == 'kaiju' else joints_clawd())
+    bones = [
+        ('Hips', HIPS, SPINE, None),
+        ('Spine', SPINE, CHEST, 'Hips'),
+        ('Chest', CHEST, NECK, 'Spine'),
+        ('Neck', NECK, HEAD, 'Chest'),
+        ('Head', HEAD, HEAD_END, 'Neck'),
+        ('Jaw', JAW, JAW_END, 'Head'),
+    ]
+    bones += side_bones('L', 1) + side_bones('R', -1)
+    bones += [(f'Tail.{i + 1}', TAIL[i], TAIL[i + 1], 'Hips' if i == 0 else f'Tail.{i}') for i in range(5)]
+    globals()['BONES'] = bones
+    globals()['BONE_SEG'] = {name: (head, tail) for name, head, tail, _ in bones}
+    globals()['BONE_NAMES'] = [b[0] for b in bones]
+
+
 
 # --------------------------------------------------------------------------------------------
 # Mesh construction
 # --------------------------------------------------------------------------------------------
 
 bm = bmesh.new()
-BIND = []  # (bmesh vert, [bone names]) — weights are computed from distance to those bones
+BIND = []  # (bmesh vert, [bone names], mode). mode 'segment': inverse distance to the bones;
+#          mode 'height': gaussian in z around each bone's midpoint, for a body that is one block.
 
 
-def register(verts, material, smooth, bind):
+def register(verts, material, smooth, bind, mode='segment'):
     faces = set()
     for v in verts:
         faces.update(v.link_faces)
@@ -132,7 +149,7 @@ def register(verts, material, smooth, bind):
         f.material_index = MAT[material]
         f.smooth = smooth
     for v in verts:
-        BIND.append((v, list(bind)))
+        BIND.append((v, list(bind), mode))
 
 
 def diag(sx, sy, sz):
@@ -196,7 +213,7 @@ def belly_surface(x, z, lift=0.0):
     return p + n * lift, n
 
 
-def rounded_box(center, size, bevel, material='KaijuBody', bind=(), segments=5, smooth=True):
+def rounded_box(center, size, bevel, material='KaijuBody', bind=(), segments=5, smooth=True, mode='segment'):
     """Bevelled cube, the Claude Code mascot's silhouette. Built in a scratch bmesh so the bevel
     runs on a unit cube, then scaled into place and merged."""
     tmp = bmesh.new()
@@ -212,7 +229,7 @@ def rounded_box(center, size, bevel, material='KaijuBody', bind=(), segments=5, 
     bpy.data.meshes.remove(tmp_mesh)
     bm.verts.ensure_lookup_table()
     verts = bm.verts[n0:]
-    register(verts, material, smooth, bind)
+    register(verts, material, smooth, bind, mode)
     return verts
 
 
@@ -244,7 +261,7 @@ def starburst(cz, radius, bind, spokes=12):
     verts = bmesh.ops.create_uvsphere(bm, u_segments=12, v_segments=8, radius=radius * 0.2, matrix=m)['verts']
     register(verts, 'KaijuGlow', True, bind)
 
-def build_mesh():
+def build_mesh_kaiju():
     # Torso
     ball(HIPS + V((0, 0.05, 0)), 1.3, (1.1, 0.95, 0.9), bind=['Hips', 'Spine'])
     ball((0, -0.2, 5.95), 1.5, (1.0, 1.0, 1.05), bind=['Spine', 'Hips', 'Chest'])
@@ -344,6 +361,28 @@ def build_mesh():
     bm.verts.index_update()
 
 
+def build_mesh_clawd():
+    """Clawd, faithfully: a wide terracotta loaf with soft corners, two small dark eyes high on
+    the face, two stubby legs ending in little block feet. Nothing else."""
+    chain = ['Hips', 'Spine', 'Chest', 'Neck', 'Head']
+    rounded_box((0, 0, 3.0), (5.8, 3.4, 3.6), 0.26, bind=chain, mode='height', segments=6)
+    front = -1.7
+    for s in (1, -1):
+        rounded_box((s * 1.2, front, 3.7), (0.55, 0.3, 0.7), 0.15, material='KaijuClaw', bind=['Neck', 'Head'], segments=3)
+    for side, sign in (('L', 1), ('R', -1)):
+        m = (lambda v: v) if sign > 0 else mirror
+        tube(m(HIP_L), m(KNEE_L), 0.5, 0.45, bind=[f'Thigh.{side}'])
+        ball(m(KNEE_L), 0.45, bind=[f'Thigh.{side}', f'Shin.{side}'])
+        tube(m(KNEE_L), m(ANKLE_L), 0.45, 0.4, bind=[f'Shin.{side}'])
+        rounded_box(m(V((1.2, -0.25, 0.28))), (1.0, 1.5, 0.5), 0.3, bind=[f'Foot.{side}'], segments=4)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.verts.index_update()
+
+
+def build_mesh():
+    build_mesh_kaiju() if STYLE == 'kaiju' else build_mesh_clawd()
+
+
 # --------------------------------------------------------------------------------------------
 # Scene assembly
 # --------------------------------------------------------------------------------------------
@@ -403,15 +442,20 @@ def build_scene():
 
     # Weights: inverse-distance blend across the bones each part is allowed to bind to
     groups = {name: obj.vertex_groups.new(name=name) for name in BONE_NAMES}
-    for v, bind in BIND:
+    for v, bind, mode in BIND:
         if len(bind) == 1:
             groups[bind[0]].add([v.index], 1.0, 'REPLACE')
             continue
-        ds = [max(seg_dist(v.co, *BONE_SEG[b]), 0.05) for b in bind]
-        ws = [1.0 / d ** 4 for d in ds]
-        total = sum(ws)
+        if mode == 'height':
+            centres = [(BONE_SEG[b][0].z + BONE_SEG[b][1].z) / 2 for b in bind]
+            ws = [math.exp(-((v.co.z - zc) / 0.45) ** 2) for zc in centres]
+        else:
+            ds = [max(seg_dist(v.co, *BONE_SEG[b]), 0.05) for b in bind]
+            ws = [1.0 / d ** 4 for d in ds]
+        total = sum(ws) or 1.0
         for b, w in zip(bind, ws):
-            groups[b].add([v.index], w / total, 'REPLACE')
+            if w / total > 1e-3:
+                groups[b].add([v.index], w / total, 'REPLACE')
 
     obj.parent = arm_obj
     mod = obj.modifiers.new('Armature', 'ARMATURE')
@@ -534,7 +578,8 @@ def pose_rise(p, t):
     up = smooth(0.05, 0.85, t)
     c = 1 - up  # crouch amount
     shake = bump(0.55, 0.9, t) * math.sin(TAU * 4 * t)
-    p.move('Hips', z=-1.4 * c, y=0.3 * c)
+    crouch = 1.4 if STYLE == 'kaiju' else 0.5
+    p.move('Hips', z=-crouch * c, y=0.3 * c)
     p.rot_x('Spine', 34.0 * c)
     p.rot_x('Chest', 14.0 * c)
     p.rot_x('Neck', -6.0 * c)
@@ -559,7 +604,8 @@ def pose_attack(p, t):
     p.rot_x('Neck', -8.0 * antic + 4.0 * strike)
     p.rot_x('Head', -16.0 * antic + 4.0 * strike)
     p.rot_x('Jaw', 12.0 * antic + 38.0 * strike)
-    p.move('Hips', y=0.35 * antic - 0.6 * strike, z=0.15 * antic - 0.3 * strike)
+    lunge = 0.6 if STYLE == 'kaiju' else 1.1  # Clawd has no arms, so the attack is a body slam
+    p.move('Hips', y=0.35 * antic - lunge * strike, z=0.15 * antic - 0.3 * strike)
     for side, s, lead in (('L', 1, 0.0), ('R', -1, 0.05)):
         a = smooth(0.0, 0.28, t - lead) * (1 - smooth(0.3, 0.45, t - lead))
         k = smooth(0.3, 0.45, t - lead) * (1 - smooth(0.65, 1.0, t - lead))
@@ -747,19 +793,22 @@ def render_previews(arm_obj, actions, sheet_path, shots_folder=None):
     cam = bpy.data.objects.new('PreviewCam', cam_data)
     scene.collection.objects.link(cam)
     scene.camera = cam
-    body = V((0, 1.2, 5.0))
-    head = V((0, -1.4, 9.0))
+    if STYLE == 'kaiju':
+        body, head, k = V((0, 1.2, 5.0)), V((0, -1.4, 9.0)), 1.0
+    else:
+        body, head, k = V((0, 0.4, 2.6)), V((0, -1.2, 3.4)), 0.62
 
     def look_from(pos, target):
-        cam.location = V(pos)
+        cam.location = V(pos) * k if target is body else V(pos)
         cam.rotation_euler = (target - cam.location).to_track_quat('-Z', 'Y').to_euler()
 
     front34 = (-13.0, -17.0, 8.5)
+    closeup = (-5.0, -8.0, 10.5) if STYLE == 'kaiju' else (-4.0, -7.0, 5.5)
     shots = [
         ('rest_front34', None, 0, front34, body),
         ('rest_side', None, 0, (-24.0, 1.2, 6.0), body),
         ('rest_back34', None, 0, (12.0, 18.0, 9.0), body),
-        ('head_closeup', None, 0, (-5.0, -8.0, 10.5), head),
+        ('head_closeup', None, 0, closeup, head),
         ('walk_mid', 'Walk', 9, front34, body),
         ('walk_side', 'Walk', 9, (-24.0, 1.2, 6.0), body),
         ('rise_start', 'Rise', 3, front34, body),
@@ -796,14 +845,18 @@ def main():
     ap.add_argument('--out', default=os.path.join(here, '..', '..', 'public', 'models', 'kaiju.glb'))
     ap.add_argument('--sheet', default=None, help='write a JPEG contact sheet of preview renders here')
     ap.add_argument('--shots', default=None, help='optional folder that keeps the individual preview frames')
+    ap.add_argument('--style', default='clawd', choices=['clawd', 'kaiju'], help='clawd = the Claude mascot (default); kaiju = Godzilla-style body')
     args = ap.parse_args(argv)
+    global STYLE
+    STYLE = args.style
+    configure_skeleton(STYLE)
 
     arm_obj, mesh_obj = build_scene()
     actions = build_animations(arm_obj)
     export_glb(args.out)
 
     mesh = mesh_obj.data
-    print(f'KAIJU_STATS verts={len(mesh.vertices)} faces={len(mesh.polygons)} '
+    print(f'KAIJU_STATS style={STYLE} verts={len(mesh.vertices)} faces={len(mesh.polygons)} '
           f'bones={len(BONE_NAMES)} clips={",".join(actions)} out={os.path.abspath(args.out)} '
           f'bytes={os.path.getsize(args.out)}')
 

@@ -258,7 +258,7 @@ export class KaijuBehaviour {
 
     // Walk cadence follows speed so the feet do not slide: two steps per cycle.
     if (this.clip.name === 'Walk') {
-      const step = 0.32 * height
+      const step = 0.2 * height // stubby mascot legs take short steps
       this.clip.timeScale = spec.duration / ((2 * step) / Math.max(speed, 0.01))
     }
 
@@ -397,14 +397,14 @@ export class KaijuBehaviour {
     switch (ev.type) {
       case 'footstep': {
         const s = ev.side === 'left' ? 1 : -1
-        const x = this.pose.x + left.x * s * 0.12 * height + forward.x * 0.1 * height
-        const z = this.pose.z + left.z * s * 0.12 * height + forward.z * 0.1 * height
+        const x = this.pose.x + left.x * s * 0.22 * height + forward.x * 0.05 * height
+        const z = this.pose.z + left.z * s * 0.22 * height + forward.z * 0.05 * height
         this.emit({ type: 'footstep', x, z, side: ev.side ?? 'left', inWater: this.ground(x, z) < seaLevel, strength: 1 })
         break
       }
       case 'hit': {
         const kind = this.clip.name === 'Stomp' ? 'stomp' : 'attack'
-        const reach = kind === 'stomp' ? 0.2 * height : 0.55 * height
+        const reach = kind === 'stomp' ? 0.25 * height : 0.4 * height // body slam lands just past the face
         const x = this.pose.x + forward.x * reach
         const z = this.pose.z + forward.z * reach
         this.emit({ type: 'hit', x, z, kind, inWater: this.ground(x, z) < seaLevel })

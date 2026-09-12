@@ -114,18 +114,20 @@ have loaded at high detail, set `fuelMinHeight` to the contour where the suburb 
 polish is injecting the same scorch lookup into the tile materials so char sits on the photoreal
 texture instead of a draped sheet.
 
-### Kaiju (Claude-themed; standalone module built 2026-09-12)
+### Kaiju: Clawd, the Claude mascot (standalone module built 2026-09-12)
 
 Lives in `src/simulations/kaiju/`, sandbox at `/kaiju.html`. A second beat after the tsunami:
-while the water holds, a comically large three-hundred-metre kaiju in the Claude palette (Claude-mascot face with big dark eyes and a smile, terracotta hide,
-cream belly, glowing cream plates and a glowing Claude starburst on its chest) surfaces in False Bay,
-wades ashore on the same height field the tsunami sampled, and smashes the pinned house. In the
-sandbox, "Tsunami, then kaiju" plays the whole sequence on the stand-in city.
+while the water holds, Clawd, the Claude mascot, surfaces in False Bay at a comically large three
+hundred metres, wades ashore on the same height field the tsunami sampled, and body-slams the
+pinned house. The model is a faithful Clawd: a squat terracotta rounded blob with two small dark
+eyes and two stubby block feet, no arms, tail or mouth. In the sandbox, "Tsunami, then kaiju"
+plays the whole sequence on the stand-in city.
 
 - **Model.** Generated entirely by `tools/blender/kaiju.py` and committed as
-  `public/models/kaiju.glb` (about 0.5 MB, 5k vertices, 25 bones). Six in-place clips: Idle, Walk,
-  Rise, Attack, Roar, Stomp. Clip table, rebuild command and a contact sheet of preview renders in
-  `tools/blender/kaiju.md`.
+  `public/models/kaiju.glb` (about 0.25 MB, 1.2k vertices, 25 bones). Six in-place clips: Idle,
+  Walk, Rise, Attack, Roar, Stomp. Clip table, rebuild command and a contact sheet of preview
+  renders in `tools/blender/kaiju.md`. `--style kaiju` rebuilds the earlier Godzilla-style body in
+  the Claude palette on the same rig if the demo ever wants a scarier monster.
 - **Code.** `KaijuBehaviour` is a renderer-free state machine (hidden, rising, walking, attacking,
   roaring, stomping, idle, retreating, submerging) that owns clip timing and emits footstep, hit
   and roar events. `KaijuActor` follows the module contract: a group in the local frame,

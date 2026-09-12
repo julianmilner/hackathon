@@ -94,3 +94,11 @@ Record a decision when it changes the work other people or agents should do. Kee
 **Why:** When the renderer was built there was no working Google key (a key added later was blocked by its referrer restriction until a correctly restricted one was issued on 12 September 2026), and a demo that can show a blank screen is a demo that fails. The preview also lets overlays (crime rasters, pins, water) be developed and tested without spending Google quota or waiting on account admin, and the mountains, coastline and city grid are recognisable enough to carry a wide shot. It stays inside the "one rendering engine" rule: same three.js, react-three-fiber, HUD and viewpoint code, so no second camera system.
 
 **Consequences:** The photoreal view is still the intended hero and must be verified as soon as the key works. Overlays should be written against the shared `SceneApi` and lat/lon helpers so they work on both renderers; in the terrain view they project with `toLocal` and sample the height field. Tsunami stage two (water between buildings) needs the Google mesh and cannot be demonstrated on the preview. Esri attribution must stay visible in terrain mode.
+
+## 2026-09-12 — The kaiju is Clawd, the Claude mascot, not a Claude-coloured Godzilla
+
+**Decision:** The monster is a faithful Clawd (the Claude Code mascot: squat terracotta rounded blob, two small dark eyes, two stubby block feet, nothing else) at three hundred metres. The Godzilla-style body stays in the script behind `--style kaiju`.
+
+**Why:** A recognisable mascot lands the joke instantly with a Claude-aware audience, where a Claude-coloured lizard needed explaining. Keeping the same rig and clips meant the swap cost an hour and nothing structural in the behaviour script changed.
+
+**Consequences:** No arms, so the attack is a body slam and the hit lands just past the face. Nothing glows, so the actor's roar glow pulse is a no-op for this style. Stride and footstep spacing in `KaijuBehaviour.ts` are tuned for stubby legs.

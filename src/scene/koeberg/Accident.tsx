@@ -29,10 +29,15 @@ interface Props {
   sim: SimState
   process: ProcessState
   active: boolean
+  // Draw the regional fallout footprint and the 5 km / 16 km zone rings on the ground plane.
+  // Turn off when the station sits on real terrain, where a flat plane would cut through hills.
+  region?: boolean
 }
 
 // ------------------------------------------------------------------ particle system
 const particleVert = /* glsl */ `
+  #include <common>
+  #include <logdepthbuf_pars_vertex>
   attribute float aSize;
   attribute float aAlpha;
   varying float vAlpha;
@@ -43,13 +48,16 @@ const particleVert = /* glsl */ `
     vec4 mv = modelViewMatrix * vec4(position, 1.0);
     gl_PointSize = aSize * (600.0 / max(1.0, -mv.z));
     gl_Position = projectionMatrix * mv;
+    #include <logdepthbuf_vertex>
   }
 `
 const particleFrag = /* glsl */ `
+  #include <logdepthbuf_pars_fragment>
   uniform sampler2D uMap;
   varying float vAlpha;
   varying vec3 vColor;
   void main() {
+    #include <logdepthbuf_fragment>
     vec4 t = texture2D(uMap, gl_PointCoord);
     gl_FragColor = vec4(vColor, t.a * vAlpha);
     if (gl_FragColor.a < 0.003) discard;
@@ -120,19 +128,24 @@ function clearParticles(ps: ParticleSystem) {
 // Gaussian plume, Pasquill-Gifford class D, effective release height 300 m. Indicative only:
 // it shows where fallout would concentrate for a given wind, not a dose calculation.
 const footprintVert = /* glsl */ `
+  #include <common>
+  #include <logdepthbuf_pars_vertex>
   varying vec2 vLocal;
   void main() {
     vLocal = position.xy;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    #include <logdepthbuf_vertex>
   }
 `
 const footprintFrag = /* glsl */ `
+  #include <logdepthbuf_pars_fragment>
   uniform vec2 uDir;      // plume travel direction in plane coordinates
   uniform float uFront;   // metres the plume has travelled
   uniform float uOpacity;
   uniform float uChiRef;  // centreline maximum, computed on the CPU with the same formula
   varying vec2 vLocal;
   void main() {
+    #include <logdepthbuf_fragment>
     // plane is rotated flat: local x = east, local y = north
     vec2 p = vLocal;
     float x = dot(p, uDir);          // downwind
@@ -175,7 +188,7 @@ const _q = new Quaternion()
 const _axis = new Vector3()
 const COL = new Color()
 
-export function Accident({ parts, sim, process, active }: Props) {
+export function Accident({ parts, sim, process, active, region = true }: Props) {
   const camera = useThree((s) => s.camera)
   const apex = useMemo(() => new Vector3(...parts.anchors.points.u1_dome_apex), [parts])
   const u1 = useMemo(() => new Vector3(...parts.anchors.meta.units.u1), [parts])
@@ -393,14 +406,14 @@ export function Accident({ parts, sim, process, active }: Props) {
     updateSite(site, dt, wx, wz)
   })
 
-  const showRegion = active
+  const showRegion = active && region
   return (
     <group visible={active}>
       <primitive object={site.points} />
       <primitive object={plume.points} />
       <primitive object={flash} />
       <primitive object={ring} />
-      <primitive object={footprint} />
+      {region && <primitive object={footprint} />}
       {showRegion && epz.map((m, i) => <primitive key={i} object={m} />)}
     </group>
   )

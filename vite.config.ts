@@ -8,6 +8,8 @@ export default defineConfig({
       input: {
         // The 3D city.
         main: 'index.html',
+        // The one-minute 'what if Koeberg blew up' show, also reachable at /demo.html in dev.
+        demo: 'demo.html',
         // Standalone 2D crime heatmap, also reachable at /crime.html in dev.
         crime: 'crime.html',
         // Standalone Koeberg power station model, also reachable at /koeberg.html in dev.

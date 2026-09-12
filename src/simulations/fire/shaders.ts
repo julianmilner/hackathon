@@ -19,6 +19,8 @@ float noise(vec2 p) {
 
 export const groundVertex = /* glsl */ `
 precision highp float;
+#include <common>
+#include <logdepthbuf_pars_vertex>
 uniform sampler2D uTerrain;
 uniform float uLift;
 varying vec2 vUv;
@@ -29,11 +31,13 @@ void main() {
   vec4 world = modelMatrix * vec4(position.x, T + uLift, position.z, 1.0);
   vWorldPos = world.xyz;
   gl_Position = projectionMatrix * viewMatrix * world;
+  #include <logdepthbuf_vertex>
 }
 `
 
 export const groundFragment = /* glsl */ `
 precision highp float;
+#include <logdepthbuf_pars_fragment>
 uniform sampler2D uState;
 uniform float uTime;
 uniform vec3 uCharColor;
@@ -43,6 +47,7 @@ varying vec2 vUv;
 varying vec3 vWorldPos;
 ${noiseChunk}
 void main() {
+  #include <logdepthbuf_fragment>
   vec4 s = texture2D(uState, vUv);
   float intensity = s.r;
   float char = s.g;
@@ -75,6 +80,8 @@ void main() {
 // CPU only touches a particle's attributes when it is (re)spawned.
 export const particleVertex = /* glsl */ `
 precision highp float;
+#include <common>
+#include <logdepthbuf_pars_vertex>
 attribute float aBirth;
 attribute float aLife;
 attribute float aSeed;
@@ -105,17 +112,20 @@ void main() {
   float size = aScale * mix(uSizeStart, uSizeEnd, age);
   gl_PointSize = size * projectionMatrix[1][1] * uViewportHeight * 0.5 / max(-mv.z, 1.0);
   gl_Position = projectionMatrix * mv;
+  #include <logdepthbuf_vertex>
 }
 `
 
 export const flameFragment = /* glsl */ `
 precision highp float;
+#include <logdepthbuf_pars_fragment>
 uniform vec3 uColorHot;
 uniform vec3 uColorMid;
 uniform vec3 uColorCool;
 varying float vAge;
 varying float vSeed;
 void main() {
+  #include <logdepthbuf_fragment>
   vec2 q = gl_PointCoord - 0.5;
   float d = length(q) * 2.0;
   if (d > 1.0) discard;
@@ -131,6 +141,7 @@ void main() {
 
 export const smokeFragment = /* glsl */ `
 precision highp float;
+#include <logdepthbuf_pars_fragment>
 uniform vec3 uColorYoung;
 uniform vec3 uColorOld;
 uniform float uOpacity;
@@ -138,6 +149,7 @@ varying float vAge;
 varying float vSeed;
 ${noiseChunk}
 void main() {
+  #include <logdepthbuf_fragment>
   vec2 q = gl_PointCoord - 0.5;
   float d = length(q) * 2.0;
   if (d > 1.0) discard;

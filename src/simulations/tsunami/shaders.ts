@@ -138,6 +138,8 @@ void main() {
 
 export const surfaceVertex = /* glsl */ `
 precision highp float;
+#include <common>
+#include <logdepthbuf_pars_vertex>
 uniform sampler2D uState;
 uniform sampler2D uTerrain;
 uniform vec2 uTexel;
@@ -149,6 +151,7 @@ varying vec3 vNormal;
 varying float vDepth;
 varying float vSpeed;
 varying float vGround;
+varying float vEta;
 const float EPS = 0.02;
 
 // Drama: stretch everything above the calm sea so the wall of water reads from far away.
@@ -205,12 +208,15 @@ void main() {
   vNormal = normalize(mat3(modelMatrix) * n);
   vDepth = h;
   vSpeed = length(vel);
+  vEta = eta;
   gl_Position = projectionMatrix * viewMatrix * world;
+  #include <logdepthbuf_vertex>
 }
 `
 
 export const surfaceFragment = /* glsl */ `
 precision highp float;
+#include <logdepthbuf_pars_fragment>
 uniform vec3 uSunDir;
 uniform vec3 uShallowColor;
 uniform vec3 uDeepColor;
@@ -218,11 +224,13 @@ uniform vec3 uMudColor;
 uniform vec3 uFoamColor;
 uniform float uSeaLevel;
 uniform float uTime;
+uniform float uCalmFade;   // 1 = hide water that still sits at calm sea level over the sea floor
 varying vec3 vWorldPos;
 varying vec3 vNormal;
 varying float vDepth;
 varying float vSpeed;
 varying float vGround;
+varying float vEta;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float noise(vec2 p) {
@@ -231,6 +239,7 @@ float noise(vec2 p) {
 }
 
 void main() {
+  #include <logdepthbuf_fragment>
   if (vDepth < 0.005) discard;
   vec3 n = normalize(vNormal);
   vec3 v = normalize(cameraPosition - vWorldPos);
@@ -262,6 +271,11 @@ void main() {
   vec3 color = base * diff + spec + fresnel * 0.15;
   color = mix(color, uFoamColor, foam);
   float alpha = mix(0.45, 0.9, deep) + foam * 0.3 + fresnel * 0.2;
+  // Over open sea the undisturbed patch is invisible so the scene's own ocean shows through;
+  // anything the wave has moved (up or down) fades back in.
+  float calm = (1.0 - smoothstep(uSeaLevel - 1.5, uSeaLevel - 0.2, vGround)) * (1.0 - smoothstep(0.25, 1.2, abs(vEta - uSeaLevel)));
+  alpha *= 1.0 - uCalmFade * calm;
+  if (alpha < 0.01) discard;
   gl_FragColor = vec4(color, clamp(alpha, 0.0, 0.96));
   #include <colorspace_fragment>
 }
