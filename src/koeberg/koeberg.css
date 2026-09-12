@@ -89,7 +89,23 @@ button, select, input { font: inherit; }
 
 .k-credit { position: absolute; right: 18px; bottom: 16px; max-width: 34%; font-size: 11px; color: var(--k-muted); text-align: right; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
 
+.k-gizmo { position: absolute; top: 76px; right: 392px; display: flex; flex-direction: column; align-items: center; gap: 8px; user-select: none; -webkit-user-select: none; }
+.k-gizmo-axes { display: block; cursor: grab; touch-action: none; }
+.k-gizmo-axes.is-active { cursor: grabbing; }
+.k-gizmo-bg { fill: transparent; transition: fill 0.15s; }
+.k-gizmo-axes:hover .k-gizmo-bg, .k-gizmo-axes.is-active .k-gizmo-bg { fill: rgba(255,255,255,0.10); }
+.k-gizmo-axis { cursor: pointer; }
+.k-gizmo-axis.is-disabled { cursor: default; }
+.k-gizmo-axis:hover circle { filter: brightness(1.25); }
+.k-gizmo-axis text { font-size: 11px; font-weight: 700; fill: #101827; pointer-events: none; }
+.k-gizmo-tools { display: flex; flex-direction: column; gap: 6px; }
+.k-gizmo-tools button { width: 32px; height: 32px; padding: 6px; border: 1px solid var(--k-line); border-radius: 50%; background: var(--k-bg); color: var(--k-muted); cursor: pointer; backdrop-filter: blur(8px); touch-action: none; display: grid; place-items: center; }
+.k-gizmo-tools button svg { width: 18px; height: 18px; display: block; }
+.k-gizmo-tools button:hover { color: var(--k-text); border-color: rgba(255,255,255,0.35); }
+.k-gizmo-tools button.is-active { color: var(--k-text); background: rgba(255,255,255,0.18); cursor: grabbing; }
+
 @media (max-width: 900px) {
   .k-panel { width: min(360px, calc(100% - 36px)); top: auto; bottom: 70px; max-height: 45%; }
   .k-credit { display: none; }
+  .k-gizmo { right: 18px; }
 }

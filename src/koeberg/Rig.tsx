@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { MathUtils, Vector3 } from 'three'
+import { MathUtils, MOUSE, Vector3 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import type { SimState } from '../scene/koeberg/Accident'
 
@@ -91,6 +91,8 @@ export function Rig({ view, sim, viewNonce, onControls, onUserInteract }: Props)
     c.maxDistance = 60000
     c.maxPolarAngle = Math.PI / 2 - 0.02
     c.screenSpacePanning = false
+    // Blender habits: middle-drag orbits, Shift + drag pans (OrbitControls swaps rotate and pan on Shift).
+    c.mouseButtons = { LEFT: MOUSE.ROTATE, MIDDLE: MOUSE.ROTATE, RIGHT: MOUSE.PAN }
     return c
   }, [camera, gl])
 

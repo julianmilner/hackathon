@@ -9,6 +9,8 @@ import type { ProcessState } from '../scene/koeberg/ProcessFlow'
 import { ACCIDENT_PHASES, EXPLOSION_T, FACTS, KOEBERG, PHASE_VIEWS, phaseAt, PROCESS_STEPS, WIND_PRESETS } from '../scene/koeberg/site'
 import { Ocean } from '../scene/terrain/Ocean'
 import { SkyDome } from '../scene/terrain/SkyDome'
+import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { NavGizmo } from './NavGizmo'
 import { findView, plumeView, regionView, Rig, U1_DOME_VIEW, VIEWS, type View } from './Rig'
 
 // Morning sun from the east-north-east so the turbine hall façade and domes are lit in the front view.
@@ -47,6 +49,7 @@ export function KoebergApp() {
   const [mode, setMode] = useState<ViewMode>((params.get('mode') as ViewMode) || 'exterior')
   const [view, setView] = useState<View>(findView(params.get('view')) ?? VIEWS[0])
   const [viewNonce, setViewNonce] = useState(0)
+  const [controls, setControls] = useState<OrbitControls | null>(null)
   const [activeStep, setActiveStep] = useState<string | null>(null)
   const [windId, setWindId] = useState(params.get('wind') ?? WIND_PRESETS[0].id)
   const [labelsOn, setLabelsOn] = useState(params.get('labels') !== '0')
@@ -71,12 +74,18 @@ export function KoebergApp() {
     return findView(id)
   }, [wind])
 
+  const preset = useRef<View>(view)
   const goView = useCallback((id: string) => {
     const v = resolveView(id)
     if (!v) return
+    preset.current = v
     setView(v)
     setViewNonce((n) => n + 1)
   }, [resolveView])
+
+  // Gizmo snaps fly to an ad-hoc axis view; Home flies back to the last chosen preset.
+  const snapView = useCallback((v: View) => { setView(v); setViewNonce((n) => n + 1) }, [])
+  const homeView = useCallback(() => { setView(preset.current); setViewNonce((n) => n + 1) }, [])
 
   // Guided camera: the accident timeline flies to whatever each phase needs the viewer to see,
   // until the user takes the controls.
@@ -161,9 +170,10 @@ export function KoebergApp() {
         <Suspense fallback={null}>
           <Koeberg mode={mode} sim={sim} process={process} ghost={ghostShells} labelContainer={labelsOn ? labelEl : null} activeStep={activeStep} />
         </Suspense>
-        <Rig view={view} viewNonce={viewNonce} sim={sim} onUserInteract={takeControl} />
+        <Rig view={view} viewNonce={viewNonce} sim={sim} onUserInteract={takeControl} onControls={setControls} />
       </Canvas>
       <div className="k-labels" ref={labelLayer} />
+      <NavGizmo controls={controls} onSnap={snapView} onHome={homeView} onInteract={takeControl} />
 
       <header className="k-title">
         <p className="k-eyebrow">Eskom · Melkbosstrand · 30 km north of Cape Town</p>
@@ -263,7 +273,7 @@ export function KoebergApp() {
       </nav>
 
       <footer className="k-credit">
-        Model built to measured dimensions from imagery, Eskom fact sheet NU 0001 and the French 900 MWe CP1 design. Left-drag orbit, right-drag pan, wheel zoom.
+        Model built to measured dimensions from imagery, Eskom fact sheet NU 0001 and the French 900 MWe CP1 design. Left or middle-drag orbit, right or Shift-drag pan, wheel zoom. Drag the axis gizmo to orbit, click an axis to snap; keys 1, 3, 7 (Ctrl flips), Home.
       </footer>
     </div>
   )
