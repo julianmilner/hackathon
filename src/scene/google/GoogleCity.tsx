@@ -174,6 +174,26 @@ function CameraFlight({ apiRef, onProgress, onReady }: Pick<Props, 'apiRef' | 'o
   return null
 }
 
+// Console hook promised in README.md: renderer memory and draw counts plus tile statistics.
+function TileStats() {
+  const tiles = useContext(TilesRendererContext)
+  const gl = useThree((s) => s.gl)
+  useEffect(() => {
+    if (!tiles) return
+    window.__cityStats = () => ({
+      ...gl.info.memory,
+      ...gl.info.render,
+      ...tiles.stats,
+      visibleTiles: tiles.visibleTiles.size,
+      loadProgress: tiles.loadProgress,
+    })
+    return () => {
+      delete window.__cityStats
+    }
+  }, [tiles, gl])
+  return null
+}
+
 function lerpAngle(a: number, b: number, t: number) {
   let d = (b - a) % (Math.PI * 2)
   if (d > Math.PI) d -= Math.PI * 2
@@ -210,6 +230,7 @@ export function GoogleCity({ apiKey, apiRef, onProgress, onReady, onError }: Pro
 
         <GlobeControls enableDamping={true} />
         <CameraFlight apiRef={apiRef} onProgress={onProgress} onReady={onReady} />
+        <TileStats />
         <TilesAttributionOverlay style={{ left: 'auto', right: 12, bottom: 12, fontSize: 11, opacity: 0.85 }} />
       </TilesRenderer>
     </Canvas>

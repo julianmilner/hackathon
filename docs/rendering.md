@@ -80,6 +80,16 @@ Camera shake plus a ground-crack shader. Do not simulate buildings collapsing.
 
 Particle system and a spreading emissive mask driven by wind direction and slope.
 
+## Koeberg power station model
+
+A procedural model of Koeberg lives in `blender/koeberg.py` (Blender 5, headless) and is exported to `public/models/koeberg.glb` with `public/models/koeberg.anchors.json` (component positions and loop paths, already in three.js coordinates). React components are in `src/scene/koeberg/`; the standalone page is `koeberg.html`.
+
+- **Dimensions** come from imagery measurement (Esri World Imagery, 0.25 m/px), the French 900 MWe CP1 containment (37 m inner diameter, 0.9 m walls) and Eskom fact sheet NU 0001 (13 m reactor vessel, three 21 m steam generators, 1 HP + 3 LP turbines, 14 m generators, 40 t/s seawater per unit). The plant axis runs 22° west of north.
+- **Frame:** metres, x east, y up, z south, origin at 33.67644°S 18.43205°E, terrace at y = 0 (about 8 m above sea level). Drop `<Koeberg>` into the city scene at that lat/lon with `showSite={false}` so the terrace, roads, breakwaters and pylons are hidden and the Google mesh shows through. Node names are prefixed `ext_`, `int_`, `site_`, `shard_` for this.
+- **Modes:** `exterior`; `inside` ghosts the shells and animates particles along the primary, secondary and tertiary loops with labels; `accident` runs a 90-second station-blackout timeline (pumps stop, core melt, hydrogen detonation that shatters the pre-fractured Unit 1 dome, smoke, then a regional plume). The footprint is a Gaussian plume (Pasquill-Gifford class D, 300 m release height, 30 km depletion length) with three bands plus the 5 km and 16 km emergency planning zones. It is indicative, not a dose model.
+- **Map integration notes:** the footprint and zone rings are flat planes at the site height, so over the photoreal mesh they will cut through Table Mountain; draw them with `depthTest` off or conform them to the height field. The regional plume particles are placed analytically from story time, so scrubbing the timeline works.
+- **Iteration loop:** Blender renders previews to a folder (`--renders`), and a Playwright script screenshots the page with URL parameters (`?view=domes&mode=accident&t=24&play=0`). The page exposes `window.__koeberg` with `setMode`, `setView`, `setTime`, `setWind`.
+
 ## Data preparation
 
 Two scripts in `scripts/crime/`. `build_crime_geojson.py` reads the SAPS quarterly workbooks, fetches Western Cape Government precinct polygons and 2021 population, computes twelve-month counts and per-100 000 rates per precinct, and exports GeoJSON into `public/data/`. `build_crime_raster.py` blends those counts into continuous heat layers (`public/data/heat/*.png` plus `index.json`) and writes the preview image in `docs/assets/`. The app only ever reads these files; `crime.html` shows the interactive 2D version. To drape crime over the 3D city, load a layer PNG as a texture across the `index.json` extent and colour it with the lookup in `src/crime/scale.ts`.

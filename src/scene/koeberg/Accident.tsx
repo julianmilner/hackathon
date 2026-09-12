@@ -142,12 +142,13 @@ const footprintFrag = /* glsl */ `
     float sz = 0.06 * x / sqrt(1.0 + 0.0015 * x);
     float H = 300.0;
     // elevated release from the fire plume plus a ground-level leak from the breached building
-    float chi = exp(-0.5 * y * y / (sy * sy)) * (exp(-0.5 * H * H / (sz * sz)) + 0.25) / (sy * sz);
+    // deposition depletes the plume as it travels (e-folding length 30 km)
+    float chi = exp(-0.5 * y * y / (sy * sy)) * (exp(-0.5 * H * H / (sz * sz)) + 0.25) / (sy * sz) * exp(-x / 30000.0);
     float lc = log(chi / uChiRef) / log(10.0);
     vec3 col; float a;
-    if (lc > -0.6)       { col = vec3(0.86, 0.12, 0.10); a = 0.55; }
-    else if (lc > -1.4)  { col = vec3(0.95, 0.48, 0.10); a = 0.45; }
-    else if (lc > -2.2)  { col = vec3(0.98, 0.85, 0.25); a = 0.32; }
+    if (lc > -0.5)       { col = vec3(0.86, 0.12, 0.10); a = 0.55; }
+    else if (lc > -1.2)  { col = vec3(0.95, 0.48, 0.10); a = 0.45; }
+    else if (lc > -1.8)  { col = vec3(0.98, 0.85, 0.25); a = 0.32; }
     else discard;
     // reveal as the front advances
     a *= 1.0 - smoothstep(uFront - 1500.0, uFront + 500.0, x);
@@ -156,16 +157,13 @@ const footprintFrag = /* glsl */ `
   }
 `
 
-// Centreline ground-level maximum of the footprint formula, scanning downwind distance.
+// Reference concentration: the footprint formula on the centreline 3 km downwind. Bands are
+// decades below this, so red reaches roughly 8 km, orange 30 km and yellow 50 km.
 function centrelineMax() {
-  let best = 0
-  for (let x = 300; x < 80000; x += 100) {
-    const sy = (0.08 * x) / Math.sqrt(1 + 0.0001 * x)
-    const sz = (0.06 * x) / Math.sqrt(1 + 0.0015 * x)
-    const chi = (Math.exp((-0.5 * 300 * 300) / (sz * sz)) + 0.25) / (sy * sz)
-    if (chi > best) best = chi
-  }
-  return best
+  const x = 3000
+  const sy = (0.08 * x) / Math.sqrt(1 + 0.0001 * x)
+  const sz = (0.06 * x) / Math.sqrt(1 + 0.0015 * x)
+  return ((Math.exp((-0.5 * 300 * 300) / (sz * sz)) + 0.25) / (sy * sz)) * Math.exp(-x / 30000)
 }
 
 // ------------------------------------------------------------------ component

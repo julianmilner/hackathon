@@ -26,6 +26,13 @@ npm run lint
 npm run build
 ```
 
+Standalone pages in dev: `/koeberg.html` is the Koeberg power station model (exterior, inside-the-process view and accident timeline). To rebuild its GLB after editing `blender/koeberg.py`:
+
+```sh
+/Applications/Blender.app/Contents/MacOS/Blender -b --python blender/koeberg.py -- \
+  --glb public/models/koeberg.glb --anchors public/models/koeberg.anchors.json
+```
+
 ## The 3D city
 
 `npm run dev` opens the 3D Cape Town at `http://localhost:5173/`. Two renderers share one HUD (viewpoint chips, loading bar, attribution):
@@ -58,4 +65,4 @@ The scripts download precinct boundaries, enumeration areas and population from 
 - [Design system](docs/design-system.md) — product and visual rules.
 - [Architecture](docs/architecture.md) — technical boundaries and major choices.
 - [Demo plan](docs/demo.md) — pitch and click-path for judges.
-- [Rendering](docs/rendering.md) — how the 3D city is rendered, costs, and constraints.
+- [Rendering](docs/rendering.md) — how the 3D city is rendered, costs, and constraints, plus the Koeberg station model.
