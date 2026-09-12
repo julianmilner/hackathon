@@ -1,0 +1,32 @@
+[debug] [2026-09-12T10:01:21.855Z] ----------------------------------------------------------------------
+[debug] [2026-09-12T10:01:21.856Z] Command:       /opt/homebrew/Cellar/node/23.11.0/bin/node /opt/homebrew/bin/firebase projects:addfirebase hackathon-agritrekker
+[debug] [2026-09-12T10:01:21.857Z] CLI Version:   15.8.0
+[debug] [2026-09-12T10:01:21.857Z] Platform:      darwin
+[debug] [2026-09-12T10:01:21.857Z] Node Version:  v23.11.0
+[debug] [2026-09-12T10:01:21.857Z] Time:          Sat Sep 12 2026 12:01:21 GMT+0200 (South Africa Standard Time)
+[debug] [2026-09-12T10:01:21.857Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-09-12T10:01:21.932Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-09-12T10:01:21.932Z] > authorizing via signed-in user (louis@agritrekker.co.za)
+[debug] [2026-09-12T10:01:21.934Z] Checked if tokens are valid: true, expires at: 1789210868788
+[debug] [2026-09-12T10:01:21.934Z] Checked if tokens are valid: true, expires at: 1789210868788
+[debug] [2026-09-12T10:01:21.934Z] >>> [apiv2][query] POST https://firebase.googleapis.com/v1beta1/projects/hackathon-agritrekker:addFirebase [none]
+[debug] [2026-09-12T10:01:24.723Z] <<< [apiv2][status] POST https://firebase.googleapis.com/v1beta1/projects/hackathon-agritrekker:addFirebase 200
+[debug] [2026-09-12T10:01:24.724Z] <<< [apiv2][body] POST https://firebase.googleapis.com/v1beta1/projects/hackathon-agritrekker:addFirebase {"name":"operations/workflows/ZDU3NjFlNmMtZGU1Ny00NGMwLWE3OWEtYjJlZjZlYWJhMzNj"}
+[debug] [2026-09-12T10:01:24.727Z] Checked if tokens are valid: true, expires at: 1789210868788
+[debug] [2026-09-12T10:01:24.727Z] Checked if tokens are valid: true, expires at: 1789210868788
+[debug] [2026-09-12T10:01:24.727Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/operations/workflows/ZDU3NjFlNmMtZGU1Ny00NGMwLWE3OWEtYjJlZjZlYWJhMzNj [none]
+[debug] [2026-09-12T10:01:29.239Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/operations/workflows/ZDU3NjFlNmMtZGU1Ny00NGMwLWE3OWEtYjJlZjZlYWJhMzNj 200
+[debug] [2026-09-12T10:01:29.240Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/operations/workflows/ZDU3NjFlNmMtZGU1Ny00NGMwLWE3OWEtYjJlZjZlYWJhMzNj {"name":"operations/workflows/ZDU3NjFlNmMtZGU1Ny00NGMwLWE3OWEtYjJlZjZlYWJhMzNj"}
+[debug] [2026-09-12T10:01:29.741Z] [Add Firebase Poller] Retrying task index 0
+[debug] [2026-09-12T10:01:29.743Z] Checked if tokens are valid: true, expires at: 1789210868788
+[debug] [2026-09-12T10:01:29.743Z] Checked if tokens are valid: true, expires at: 1789210868788
+[debug] [2026-09-12T10:01:29.743Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/operations/workflows/ZDU3NjFlNmMtZGU1Ny00NGMwLWE3OWEtYjJlZjZlYWJhMzNj [none]
+[debug] [2026-09-12T10:01:30.508Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/operations/workflows/ZDU3NjFlNmMtZGU1Ny00NGMwLWE3OWEtYjJlZjZlYWJhMzNj 200
+[debug] [2026-09-12T10:01:30.508Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/operations/workflows/ZDU3NjFlNmMtZGU1Ny00NGMwLWE3OWEtYjJlZjZlYWJhMzNj {"name":"operations/workflows/ZDU3NjFlNmMtZGU1Ny00NGMwLWE3OWEtYjJlZjZlYWJhMzNj"}
+[debug] [2026-09-12T10:01:31.510Z] [Add Firebase Poller] Retrying task index 0
+[debug] [2026-09-12T10:01:31.511Z] Checked if tokens are valid: true, expires at: 1789210868788
+[debug] [2026-09-12T10:01:31.511Z] Checked if tokens are valid: true, expires at: 1789210868788
+[debug] [2026-09-12T10:01:31.512Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/operations/workflows/ZDU3NjFlNmMtZGU1Ny00NGMwLWE3OWEtYjJlZjZlYWJhMzNj [none]
+[debug] [2026-09-12T10:01:32.129Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/operations/workflows/ZDU3NjFlNmMtZGU1Ny00NGMwLWE3OWEtYjJlZjZlYWJhMzNj 200
+[debug] [2026-09-12T10:01:32.129Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/operations/workflows/ZDU3NjFlNmMtZGU1Ny00NGMwLWE3OWEtYjJlZjZlYWJhMzNj {"name":"operations/workflows/ZDU3NjFlNmMtZGU1Ny00NGMwLWE3OWEtYjJlZjZlYWJhMzNj"}

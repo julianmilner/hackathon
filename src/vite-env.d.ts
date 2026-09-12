@@ -2,4 +2,5 @@
 
 interface ImportMetaEnv {
   readonly VITE_GOOGLE_MAPS_TILES_KEY?: string
+  readonly VITE_DEMO_PASSWORD?: string
 }
