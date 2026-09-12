@@ -70,7 +70,7 @@ export function Koeberg({ mode, sim, process, showSite = true, labelContainer = 
       <primitive object={parts.scene} />
       <ProcessFlow parts={parts} state={process} visible={mode !== 'exterior'} />
       <Accident parts={parts} sim={sim} process={process} active={mode === 'accident'} />
-      <Labels items={labels} container={labelContainer} parent={group.current} activeId={activeStep} />
+      <Labels items={labels} container={labelContainer} parent={group} activeId={activeStep} />
     </group>
   )
 }

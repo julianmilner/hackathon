@@ -11,8 +11,9 @@ import { Ocean } from '../scene/terrain/Ocean'
 import { SkyDome } from '../scene/terrain/SkyDome'
 import { findView, Rig, VIEWS, type View } from './Rig'
 
-const SUN_AZIMUTH = 325
-const SUN_ELEVATION = 42
+// Morning sun from the east-north-east so the turbine hall façade and domes are lit in the front view.
+const SUN_AZIMUTH = 75
+const SUN_ELEVATION = 46
 const SUN_DIR = new Vector3(
   Math.sin(deg2rad(SUN_AZIMUTH)) * Math.cos(deg2rad(SUN_ELEVATION)),
   Math.sin(deg2rad(SUN_ELEVATION)),
@@ -124,7 +125,7 @@ export function KoebergApp() {
           shadow-camera-bottom={-700}
         />
         <group position-y={-KOEBERG.platformAboveSea - 0.6}>
-          <Ocean sunDir={SUN_DIR} skyColor={SKY_HORIZON} deepColor="#0e4a70" />
+          <Ocean sunDir={SUN_DIR} skyColor={SKY_HORIZON} heightField={null} deepColor="#0e4a70" />
         </group>
         <Suspense fallback={null}>
           <Koeberg mode={mode} sim={sim} process={process} labelContainer={labelsOn ? labelEl : null} activeStep={activeStep} />

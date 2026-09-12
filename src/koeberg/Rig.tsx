@@ -23,7 +23,7 @@ export const VIEWS: View[] = [
   { id: 'aerial', name: 'Aerial', position: at(720, -640, 380), target: at(-20, 20, 12) },
   { id: 'domes', name: 'Domes', position: at(130, -190, 78), target: at(0, 10, 36) },
   { id: 'sea', name: 'From the sea', position: at(-620, 260, 110), target: at(-40, 0, 20) },
-  { id: 'inside', name: 'Inside Unit 1', position: at(95, 4, 62), target: at(2, 44, 20) },
+  { id: 'inside', name: 'Inside Unit 1', position: at(62, -2, 46), target: at(0, 44, 17) },
   { id: 'turbine', name: 'Turbine hall', position: at(140, 110, 70), target: at(58, 20, 16) },
   { id: 'region', name: 'Region', position: [-9000, 17000, -9000], target: [3000, 0, 12000] },
 ]

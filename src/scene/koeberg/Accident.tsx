@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import {
-  AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, Mesh, MeshBasicMaterial, MeshStandardMaterial,
+  AdditiveBlending, type Blending, BufferAttribute, BufferGeometry, Color, DoubleSide, Mesh, MeshBasicMaterial, MeshStandardMaterial,
   NormalBlending, PlaneGeometry, Points, Quaternion, RingGeometry, ShaderMaterial, SphereGeometry, Vector3,
 } from 'three'
 import type { ModelParts } from './KoebergModel'
@@ -71,7 +71,7 @@ interface ParticleSystem {
   next: number
 }
 
-function makeParticles(n: number, blending: number): ParticleSystem {
+function makeParticles(n: number, blending: Blending): ParticleSystem {
   const geometry = new BufferGeometry()
   const pos = new Float32Array(n * 3)
   geometry.setAttribute('position', new BufferAttribute(pos, 3))
@@ -130,6 +130,7 @@ const footprintFrag = /* glsl */ `
   uniform vec2 uDir;      // plume travel direction in plane coordinates
   uniform float uFront;   // metres the plume has travelled
   uniform float uOpacity;
+  uniform float uChiRef;  // centreline maximum, computed on the CPU with the same formula
   varying vec2 vLocal;
   void main() {
     // plane is rotated flat: local x = east, local y = north
@@ -140,15 +141,13 @@ const footprintFrag = /* glsl */ `
     float sy = 0.08 * x / sqrt(1.0 + 0.0001 * x);
     float sz = 0.06 * x / sqrt(1.0 + 0.0015 * x);
     float H = 300.0;
-    float chi = exp(-0.5 * y * y / (sy * sy)) * exp(-0.5 * H * H / (sz * sz)) / (sy * sz);
-    // reference: centreline concentration 2 km downwind
-    float sy0 = 0.08 * 2000.0 / sqrt(1.2); float sz0 = 0.06 * 2000.0 / sqrt(4.0);
-    float chi0 = exp(-0.5 * H * H / (sz0 * sz0)) / (sy0 * sz0);
-    float lc = log(chi / chi0) / log(10.0);
+    // elevated release from the fire plume plus a ground-level leak from the breached building
+    float chi = exp(-0.5 * y * y / (sy * sy)) * (exp(-0.5 * H * H / (sz * sz)) + 0.25) / (sy * sz);
+    float lc = log(chi / uChiRef) / log(10.0);
     vec3 col; float a;
-    if (lc > -0.55)      { col = vec3(0.86, 0.12, 0.10); a = 0.55; }
-    else if (lc > -1.45) { col = vec3(0.95, 0.48, 0.10); a = 0.45; }
-    else if (lc > -2.35) { col = vec3(0.98, 0.85, 0.25); a = 0.32; }
+    if (lc > -0.6)       { col = vec3(0.86, 0.12, 0.10); a = 0.55; }
+    else if (lc > -1.4)  { col = vec3(0.95, 0.48, 0.10); a = 0.45; }
+    else if (lc > -2.2)  { col = vec3(0.98, 0.85, 0.25); a = 0.32; }
     else discard;
     // reveal as the front advances
     a *= 1.0 - smoothstep(uFront - 1500.0, uFront + 500.0, x);
@@ -156,6 +155,18 @@ const footprintFrag = /* glsl */ `
     if (gl_FragColor.a < 0.01) discard;
   }
 `
+
+// Centreline ground-level maximum of the footprint formula, scanning downwind distance.
+function centrelineMax() {
+  let best = 0
+  for (let x = 300; x < 80000; x += 100) {
+    const sy = (0.08 * x) / Math.sqrt(1 + 0.0001 * x)
+    const sz = (0.06 * x) / Math.sqrt(1 + 0.0015 * x)
+    const chi = (Math.exp((-0.5 * 300 * 300) / (sz * sz)) + 0.25) / (sy * sz)
+    if (chi > best) best = chi
+  }
+  return best
+}
 
 // ------------------------------------------------------------------ component
 const _v = new Vector3()
@@ -182,7 +193,7 @@ export function Accident({ parts, sim, process, active }: Props) {
     const mat = new ShaderMaterial({
       vertexShader: footprintVert,
       fragmentShader: footprintFrag,
-      uniforms: { uDir: { value: [0, -1] }, uFront: { value: 0 }, uOpacity: { value: 0 } },
+      uniforms: { uDir: { value: [0, -1] }, uFront: { value: 0 }, uOpacity: { value: 0 }, uChiRef: { value: centrelineMax() } },
       transparent: true,
       depthWrite: false,
       side: DoubleSide,
@@ -368,14 +379,7 @@ export function Accident({ parts, sim, process, active }: Props) {
       const dir = plumeDirection(sim.wind.fromDeg)
       sim.storySeconds = Math.max(0, te - 1.5) * STORY_RATE
       sim.plumeFront = sim.storySeconds * sim.wind.speed
-      if (te > 1.5 && te < 32) {
-        s.plumeAcc += dt * 70
-        while (s.plumeAcc > 1) {
-          s.plumeAcc -= 1
-          _v.set(u1.x + dir.x * 250, 380, u1.z + dir.z * 250)
-          emit(plume, 5, _v, 220, _v2.set(dir.x * sim.wind.speed, 0.4, dir.z * sim.wind.speed), 1.2, 60)
-        }
-      }
+      placePlume(plume, u1, dir, sim.wind.speed, sim.storySeconds, camera.position.distanceTo(_v2.set(u1.x, 0, u1.z)) < 2500 ? 0.25 : 1)
       const fp = footprint.material as ShaderMaterial
       fp.uniforms.uDir.value = [dir.x, -dir.z] // plane local y is north
       fp.uniforms.uFront.value = sim.plumeFront
@@ -387,10 +391,6 @@ export function Accident({ parts, sim, process, active }: Props) {
     const wx = windDir.x * sim.wind.speed
     const wz = windDir.z * sim.wind.speed
     updateSite(site, dt, wx, wz)
-    // --- regional plume in story time
-    const camDist = camera.position.distanceTo(_v.set(u1.x, 0, u1.z))
-    const nearFade = camDist < 2500 ? 0.25 : 1
-    updatePlume(plume, dt * STORY_RATE, nearFade)
   })
 
   const showRegion = active
@@ -468,26 +468,42 @@ function updateSite(ps: ParticleSystem, dt: number, wx: number, wz: number) {
   alpha.needsUpdate = true
 }
 
-function updatePlume(ps: ParticleSystem, dtStory: number, fade: number) {
-  const { pos, vel, age, life, kind, color, size, alpha, n } = ps
+// Regional plume: each particle is a puff released at a fixed story time during the first hour
+// after the breach. Its position follows from the wind and its age, so jumping the timeline works.
+const RELEASE_SECONDS = 3600
+function placePlume(ps: ParticleSystem, origin: Vector3, dir: { x: number; z: number }, speed: number, storySeconds: number, fade: number) {
+  const { pos, vel, age, kind, color, size, alpha, n } = ps
   const c = color.array as Float32Array
   const sz = size.array as Float32Array
   const al = alpha.array as Float32Array
+  if (kind[0] === 0) {
+    // one-off: birth time and two fixed normal deviates per puff (crosswind, vertical)
+    for (let i = 0; i < n; i++) {
+      kind[i] = 5
+      age[i] = (i / n) * RELEASE_SECONDS
+      const u1 = Math.random() || 1e-6, u2 = Math.random()
+      const r = Math.sqrt(-2 * Math.log(u1))
+      vel[i * 3] = r * Math.cos(2 * Math.PI * u2)
+      vel[i * 3 + 1] = r * Math.sin(2 * Math.PI * u2)
+      vel[i * 3 + 2] = Math.random()
+    }
+  }
+  const cx = -dir.z, cz = dir.x // crosswind unit vector
   for (let i = 0; i < n; i++) {
-    if (kind[i] === 0) { al[i] = 0; continue }
-    age[i] += dtStory
-    const a = age[i]
-    const f = a / (life[i] * STORY_RATE)
-    if (f >= 1) { kind[i] = 0; al[i] = 0; continue }
+    const t = storySeconds - age[i]
+    if (t <= 0) { al[i] = 0; continue }
+    const x = speed * t + 150
+    const sy = (0.08 * x) / Math.sqrt(1 + 0.0001 * x)
+    const szz = (0.06 * x) / Math.sqrt(1 + 0.0015 * x)
+    const cross = vel[i * 3] * sy * 0.8
     const i3 = i * 3
-    // travelled distance sets the Gaussian spread
-    const x = Math.hypot(vel[i3], vel[i3 + 2]) * a
-    const sigma = 0.08 * x / Math.sqrt(1 + 0.0001 * x)
-    pos[i3] += vel[i3] * dtStory + (Math.random() - 0.5) * sigma * 0.02
-    pos[i3 + 1] += vel[i3 + 1] * dtStory * 0.2
-    pos[i3 + 2] += vel[i3 + 2] * dtStory + (Math.random() - 0.5) * sigma * 0.02
-    sz[i] = 250 + sigma * 1.6
-    al[i] = 0.16 * (1 - f) * fade
+    pos[i3] = origin.x + dir.x * x + cx * cross
+    pos[i3 + 1] = Math.max(120, 320 + vel[i3 + 1] * szz * 0.5)
+    pos[i3 + 2] = origin.z + dir.z * x + cz * cross
+    sz[i] = 180 + sy * 1.4
+    // release rate tails off over the hour; puffs thin with distance
+    const strength = 1 - age[i] / RELEASE_SECONDS
+    al[i] = 0.14 * fade * (0.4 + 0.6 * strength) / (1 + x / 25000)
     c[i3] = PLUME.r; c[i3 + 1] = PLUME.g; c[i3 + 2] = PLUME.b
   }
   ;(ps.geometry.getAttribute('position') as BufferAttribute).needsUpdate = true

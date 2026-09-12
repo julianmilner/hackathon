@@ -19,6 +19,25 @@ interface Props {
   onError: (message: string) => void
 }
 
+// Performance knobs. The canvas renders on demand (camera moved, tile arrived, fade running)
+// instead of sixty times a second, so an idle city costs nothing.
+//
+// Screen-space error, in pixels, a tile may show before it refines. Google recommends 20 for
+// the photorealistic tileset; the tile count grows roughly with (resolution / errorTarget)².
+const ERROR_TARGET = 20
+// Retina at 2x draws four times the pixels of 1x for little visible gain on photogrammetry.
+const MAX_DPR = 1.5
+// Keep more tiles resident so flying between viewpoints and back does not re-download them.
+const CACHE_MAX_BYTES = 1.0e9
+const CACHE_MIN_BYTES = 0.6e9
+// If the tileset never reports fully loaded (a stuck request), unlock the HUD anyway.
+const READY_TIMEOUT_MS = 20000
+
+// By default the camera starts over the City Bowl so only those tiles stream. `?intro` on the
+// URL restores the flight in from high over the Atlantic for the demo.
+const WANT_INTRO = new URLSearchParams(window.location.search).has('intro')
+const START_VIEWPOINT = WANT_INTRO ? INTRO_START : DEFAULT_VIEWPOINT
+
 const dracoLoader = new DRACOLoader()
 dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/')
 
@@ -40,10 +59,12 @@ function CameraFlight({ apiRef, onProgress, onReady }: Pick<Props, 'apiRef' | 'o
   const tiles = useContext(TilesRendererContext)
   const camera = useThree((s) => s.camera)
   const controls = useThree((s) => s.controls) as GlobeControlsImpl | null
+  const invalidate = useThree((s) => s.invalidate)
   const flight = useRef<Flight | null>(null)
-  const current = useRef<GeoPose>(cameraGeoPose(INTRO_START))
-  const introStarted = useRef(false)
+  const current = useRef<GeoPose>(cameraGeoPose(START_VIEWPOINT))
+  const introStarted = useRef(!WANT_INTRO)
   const reported = useRef(false)
+  const lastPercent = useRef(-1)
 
   const applyPose = (pose: GeoPose) => {
     if (!tiles) return
@@ -63,28 +84,47 @@ function CameraFlight({ apiRef, onProgress, onReady }: Pick<Props, 'apiRef' | 'o
     camera.updateMatrixWorld()
   }
 
+  // A larger in-memory tile cache: nothing may be stored on disk, so this is the only cache.
+  useEffect(() => {
+    if (!tiles) return
+    tiles.lruCache.maxBytesSize = CACHE_MAX_BYTES
+    tiles.lruCache.minBytesSize = CACHE_MIN_BYTES
+  }, [tiles])
+
   useEffect(() => {
     if (!tiles) return
     const api = {
       jumpTo(v: Viewpoint) {
         flight.current = null
         applyPose(cameraGeoPose(v))
+        invalidate()
       },
       flyTo(v: Viewpoint, durationMs = 3200) {
         const to = cameraGeoPose(v)
         const from = { ...current.current }
         const travel = Math.hypot((to.lat - from.lat) * 111000, (to.lon - from.lon) * 92000, to.height - from.height)
         flight.current = { from, to, start: performance.now(), duration: durationMs, lift: Math.min(travel * 0.25, 20000) }
+        invalidate()
       },
     }
     apiRef.current = api
     tiles.group.updateMatrixWorld(true)
-    api.jumpTo(INTRO_START)
+    api.jumpTo(START_VIEWPOINT)
     return () => {
       if (apiRef.current === api) apiRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tiles, camera, apiRef])
+  }, [tiles, camera, apiRef, invalidate])
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      if (!reported.current) {
+        reported.current = true
+        onReady()
+      }
+    }, READY_TIMEOUT_MS)
+    return () => window.clearTimeout(id)
+  }, [onReady])
 
   useFrame(() => {
     if (!tiles) return
@@ -108,14 +148,24 @@ function CameraFlight({ apiRef, onProgress, onReady }: Pick<Props, 'apiRef' | 'o
         flight.current = null
         if (controls) controls.enabled = true
       }
+      // The canvas renders on demand; keep frames coming while the flight runs.
+      invalidate()
     }
 
-    onProgress(tiles.loadProgress)
-    if (!introStarted.current && (tiles.loadProgress >= 0.999 || performance.now() > 12000) && tiles.root) {
+    // Whole percents only, so the HUD does not re-render on every tile.
+    const progress = tiles.loadProgress
+    const percent = Math.floor(progress * 100)
+    if (percent !== lastPercent.current) {
+      lastPercent.current = percent
+      onProgress(progress)
+    }
+
+    const settled = progress >= 0.999 && tiles.root && tiles.visibleTiles.size > 0
+    if (!introStarted.current && tiles.root && (settled || performance.now() > 12000)) {
       introStarted.current = true
       apiRef.current?.flyTo(DEFAULT_VIEWPOINT, 6500)
     }
-    if (!reported.current && introStarted.current && tiles.loadProgress >= 0.999) {
+    if (!reported.current && introStarted.current && !flight.current && settled) {
       reported.current = true
       onReady()
     }
@@ -133,7 +183,13 @@ function lerpAngle(a: number, b: number, t: number) {
 
 export function GoogleCity({ apiKey, apiRef, onProgress, onReady, onError }: Props) {
   return (
-    <Canvas flat dpr={[1, 2]} gl={{ antialias: true, powerPreference: 'high-performance' }} camera={{ fov: 48, near: 1, far: 1e8, position: [0, 0, 2e7] }}>
+    <Canvas
+      flat
+      frameloop="demand"
+      dpr={[1, MAX_DPR]}
+      gl={{ antialias: true, powerPreference: 'high-performance' }}
+      camera={{ fov: 48, near: 1, far: 1e8, position: [0, 0, 2e7] }}
+    >
       <color attach="background" args={['#0b1524']} />
       {/* Google's mesh carries baked lighting; an ambient of pi shows the textures at true brightness. */}
       <ambientLight intensity={Math.PI * 0.95} />
@@ -141,7 +197,7 @@ export function GoogleCity({ apiKey, apiRef, onProgress, onReady, onError }: Pro
 
       <TilesRenderer
         key={apiKey}
-        errorTarget={12}
+        errorTarget={ERROR_TARGET}
         onLoadError={(e) => {
           if (e.tile === null) onError(e.error.message || 'Google tileset failed to load')
         }}

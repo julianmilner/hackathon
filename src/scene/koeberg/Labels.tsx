@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Object3D, Vector3 } from 'three'
 
@@ -17,7 +17,7 @@ interface Props {
   items: LabelItem[]
   container: HTMLElement | null
   // Object whose local frame the positions are given in.
-  parent: Object3D | null
+  parent: RefObject<Object3D | null>
   activeId?: string | null
 }
 
@@ -65,7 +65,7 @@ export function Labels({ items, container, parent, activeId }: Props) {
       } else {
         world.set(item.position[0], item.position[1], item.position[2])
       }
-      if (parent) parent.localToWorld(world)
+      if (parent.current) parent.current.localToWorld(world)
       const dist = world.distanceTo(camera.position)
       if ((item.minDist && dist < item.minDist) || (item.maxDist && dist > item.maxDist)) { el.style.display = 'none'; continue }
       world.project(camera)
