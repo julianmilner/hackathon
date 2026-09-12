@@ -27,6 +27,7 @@ const world = new Vector3()
 export function Labels({ items, container, parent, activeId }: Props) {
   const camera = useThree((s) => s.camera)
   const size = useThree((s) => s.size)
+  const invalidate = useThree((s) => s.invalidate)
   const nodes = useRef(new Map<string, HTMLDivElement>())
   const key = useMemo(() => items.map((i) => i.id).join('|'), [items])
 
@@ -54,7 +55,8 @@ export function Labels({ items, container, parent, activeId }: Props) {
   }, [activeId, key])
 
   useFrame(() => {
-    if (!container) return
+    if (!container || items.length === 0) return
+    invalidate()
     for (const item of items) {
       const el = nodes.current.get(item.id)
       if (!el) continue

@@ -12,7 +12,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-const url = process.argv[2] ?? 'http://localhost:5175/'
+const url = process.argv[2] ?? 'http://localhost:5173/'
 const seconds = Number(process.argv[3] ?? 30)
 const shot = process.argv[4] ?? '/tmp/city-smoke.png'
 const chrome = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
@@ -45,7 +45,6 @@ const pending = new Map()
 const errors = []
 ws.onmessage = ({ data }) => {
   const msg = JSON.parse(data)
-  if (msg.method === "Page.frameNavigated" || msg.method === "Page.loadEventFired") errors.push(`nav: ${msg.method} ${msg.params?.frame?.url ?? ""}`)
   if (msg.id && pending.has(msg.id)) {
     pending.get(msg.id)(msg.result ?? msg.error)
     pending.delete(msg.id)
@@ -78,9 +77,7 @@ while (Date.now() - started < seconds * 1000) {
   if (s) samples.push(JSON.parse(s))
 }
 
-const errs = (await evaluate("JSON.stringify(window.__errs||[])")) ?? "[]"
-writeFileSync("/tmp/city-smoke-errs.json", errs)
-writeFileSync("/tmp/city-smoke-console.json", JSON.stringify(errors))
+for (const e of JSON.parse((await evaluate("JSON.stringify(window.__errs || [])")) ?? "[]")) errors.push(`exception: ${e.split("\n").slice(0, 2).join(" ")}`)
 const { data } = await send('Page.captureScreenshot', { format: 'png' })
 writeFileSync(shot, Buffer.from(data, 'base64'))
 

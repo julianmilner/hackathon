@@ -5,7 +5,7 @@ Keep this short and ruthless. Move only the next few items into **Now**.
 ## Now
 
 - [ ] Choose the project idea and complete `docs/vision.md`. Leading candidate: click anywhere on a 3D Cape Town and Claude Fable 5.1 reasons over local crime, natural-hazard, wildlife and health data to give a persona-specific survival verdict with ranked risks. The persona switch (surfer vs hiker vs taxi driver) is the demo moment.
-- [ ] Confirm the photoreal view renders in the browser. A working key now lives in `.env.local` (GCP project `hackathon-agritrekker`, Map Tiles API enabled, referrers limited to localhost ports 5173–5175 and 4173); `curl` with a `http://localhost:5175/` referer returns the tileset root. Nobody has seen the Google mesh in the app yet.
+- [x] Confirm the photoreal view renders in the browser. A working key lives in `.env.local` (GCP project `hackathon-agritrekker`, Map Tiles API enabled, referrers limited to localhost ports 5173–5175 and 4173). Verified 2026-09-12 with `node scripts/city-smoke.mjs http://localhost:5175/`: the City Bowl view streams about 140 tiles and settles with no console errors, once the plugin `args` were made stable (see `docs/rendering.md`).
 - [ ] Spike: click the mesh to get lat/lon and place a marker at that point (both renderers).
 - [x] 3D Cape Town shell: Google Photorealistic 3D Tiles renderer plus a keyless terrain preview fallback, shared HUD, viewpoints and intro flight. See `docs/rendering.md`.
 - [x] Crime data pipeline and blended 2D heatmap (`crime.html`): SAPS station statistics joined to precinct polygons and population, spread over census blocks and Gaussian-blended into raster layers.

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, Points, PointsMaterial } from 'three'
 import type { ModelParts } from './KoebergModel'
 import { buildFlowPath, FLOW_STYLES, particleSprite, PRIMARY_TEMPS, SECONDARY_TEMPS, TERTIARY_TEMPS, type FlowPath, type FlowStyle } from './flow'
@@ -74,9 +74,12 @@ export function ProcessFlow({ parts, state, visible }: Props) {
   useEffect(() => () => systems.forEach((s) => { s.geometry.dispose(); (s.points.material as PointsMaterial).dispose() }), [systems])
 
   const groupRef = useRef<Points[]>([])
+  const invalidate = useThree((s) => s.invalidate)
 
   useFrame((_, delta) => {
     if (!visible) return
+    // The city canvas renders on demand; keep asking for frames while the flow animates.
+    invalidate()
     const dt = Math.min(delta, 0.05)
     for (const sys of systems) {
       sys.phase += dt * sys.style.speed * state.flow

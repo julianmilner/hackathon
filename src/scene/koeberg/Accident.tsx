@@ -175,6 +175,7 @@ const COL = new Color()
 
 export function Accident({ parts, sim, process, active }: Props) {
   const camera = useThree((s) => s.camera)
+  const invalidate = useThree((s) => s.invalidate)
   const apex = useMemo(() => new Vector3(...parts.anchors.points.u1_dome_apex), [parts])
   const u1 = useMemo(() => new Vector3(...parts.anchors.meta.units.u1), [parts])
   const stackTop = useMemo(() => new Vector3(...parts.anchors.points.stack_top), [parts])
@@ -270,6 +271,7 @@ export function Accident({ parts, sim, process, active }: Props) {
 
   useFrame((_, delta) => {
     if (!active) return
+    invalidate() // demand-rendered canvases need a frame request while the timeline runs
     const dt = Math.min(delta, 0.05)
     const s = state.current
     if (sim.playing) sim.t = Math.min(sim.t + dt * sim.speed, 90)

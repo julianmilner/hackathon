@@ -42,6 +42,8 @@ Standalone pages in dev: `/koeberg.html` is the Koeberg power station model (ext
 
 Console hooks for testing: `__city.flyTo('camps-bay')`, `__city.jumpTo('table-mountain')` (ids in `src/viewpoints.ts`) and `__cityStats()` for renderer memory and draw counts.
 
+Performance: the photoreal canvas only redraws when the camera moves or a tile arrives, and it starts over the City Bowl; add `?intro` to the URL for the flight in from the Atlantic. Smoke test in headless Chrome (30 s, prints tile and draw counts, saves a screenshot): `node scripts/city-smoke.mjs http://localhost:5173/`.
+
 ## Crime data and the 2D heatmap
 
 The 2D crime heatmap is a standalone page at `http://localhost:5173/crime.html` while `npm run dev` is running. It reads the committed files in `public/data/` (precinct GeoJSON plus the blended raster layers in `public/data/heat/`), so the app needs nothing else.
