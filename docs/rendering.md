@@ -34,6 +34,9 @@ The library ships a `GoogleCloudAuthPlugin` that takes a Google Map Tiles API ke
 
 - Enable the **Map Tiles API** on a Google Cloud project and create an API key restricted to `localhost`.
 - Put the key in `.env.local` as `VITE_GOOGLE_MAPS_TILES_KEY`. Never commit it.
+- The key's *website restriction* must list `http://localhost:5173/*` (and any other origin the demo runs from). Google checks the referrer before anything else, so a key restricted to a different site answers HTTP 403 `API_KEY_HTTP_REFERRER_BLOCKED` even when the Map Tiles API is enabled. Port wildcards such as `http://localhost:*/*` are accepted when saving the key but never match, so list each port explicitly. You can check a key from the terminal with `curl -H "Referer: http://localhost:5173/" "https://tile.googleapis.com/v1/3dtiles/root.json?key=..."`.
+
+The implementation lives in `src/scene/google/GoogleCity.tsx`: `TilesRenderer` with the `GoogleCloudAuthPlugin` (from `3d-tiles-renderer/core/plugins`), `GLTFExtensionsPlugin` with a DRACO decoder from Google's CDN, `TileCompressionPlugin`, `UpdateOnChangePlugin`, `TilesFadePlugin`, `GlobeControls` and the attribution overlay. The camera is placed with `ellipsoid.getObjectFrame(..., CAMERA_FRAME)` from lat/lon poses in `src/viewpoints.ts`, and flights interpolate lat, lon, height, azimuth and elevation. A root-tileset `load-error` hands over to the terrain preview.
 
 ## Cost
 
@@ -139,7 +142,18 @@ sandbox, "Tsunami, then kaiju" plays the whole sequence on the stand-in city.
 
 ## Data preparation
 
-Use leafmap or geopandas in a notebook to load the SAPS precinct shapefile, join the crime CSV, sanity-check the choropleth, and export GeoJSON into the repo. The app only ever reads the GeoJSON.
+Two scripts in `scripts/crime/`. `build_crime_geojson.py` reads the SAPS quarterly workbooks, fetches Western Cape Government precinct polygons and 2021 population, computes twelve-month counts and per-100 000 rates per precinct, and exports GeoJSON into `public/data/`. `build_crime_raster.py` blends those counts into continuous heat layers (`public/data/heat/*.png` plus `index.json`) and writes the preview image in `docs/assets/`. The app only ever reads these files; `crime.html` shows the interactive 2D version. To drape crime over the 3D city, load a layer PNG as a texture across the `index.json` extent and colour it with the lookup in `src/crime/scale.ts`.
+
+## Keyless terrain preview (fallback renderer, 2026-09-12)
+
+`src/scene/terrain/` renders the peninsula without any key, in the same three.js and react-three-fiber stack, so the demo never shows a blank screen and the team can build overlays before the Google key is sorted. It is a *preview*: recognisable terrain and imagery, no buildings.
+
+- **Elevation:** Mapzen Terrarium PNG tiles from AWS Open Data (`s3.amazonaws.com/elevation-tiles-prod`, SRTM-derived, free, CORS open). Zoom 12 (about 30 m per pixel) over the metro block, zoom 10 for a far ring. Decoded once into a stitched `Float32Array` height field with bilinear sampling by Web Mercator coordinate (`heightfield.ts`).
+- **Imagery:** Esri World Imagery tiles (free, attribution shown in the HUD). Zoom 15 over the City Bowl, Atlantic Seaboard and Table Mountain, zoom 14 over the surrounding suburbs, zoom 12 across the rest of the metro and zoom 11 for a 180 km ring so wide views fade into haze instead of ending at an edge. Tiles over open water are skipped. Both Esri and S3 speak HTTP/1.1 only, so requests alternate between two hostnames per source to double the browser's connection budget; a coarse pass covers everything in about 2 s and the detail streams in behind the intro flight (about 15 s in total).
+- **Frame:** a local metre frame, +X east, +Z south, Y up, centred on lat -33.93, lon 18.45 (`src/geo.ts`, `toLocal`). Curvature is ignored; over 100 km the error is a few hundred metres at the edges and invisible. Anything to be draped over this view (heat rasters, precinct outlines, pins) projects with `toLocal` and samples `HeightField.sampleLatLon` for ground height.
+- **Coastline:** SRTM reads 0 over the sea but carries offshore patches of 1 to 10 m, and real quays are only 1 to 3 m, so the land mask is cleaned by connected components (islets below 8 m are demoted to water). Water pixels are pushed to -6 m and a translucent shader ocean at +0.6 m sits over them, so the imagery's own coastline, beaches and shallows define the shore while the mask feathers the water out over land.
+- **Look:** unlit-style lighting (hemisphere plus a soft north-west sun matching the shading baked into the imagery), gradient sky dome, exponential fog that thins as the camera climbs, logarithmic depth buffer, MSAA. Named viewpoints and the intro flight are shared with the Google renderer.
+- **Limits:** no buildings, so it cannot carry tsunami stage two. Esri's terms require the attribution line to stay visible. Elevation resolution is 30 m, so cliffs are softer than the real thing.
 
 ## Ideas that strengthen the "I recognise this" moment
 

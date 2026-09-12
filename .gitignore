@@ -5,3 +5,7 @@ dist/
 !.env.example
 *.local
 .DS_Store
+
+# Python data pipeline (scripts/crime)
+.venv/
+data/cache/

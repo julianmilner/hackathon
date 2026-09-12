@@ -1,0 +1,249 @@
+/* Base styles for the standalone page (crime.html). The 3D app's styles.css
+   is not loaded here because it locks the body to a fixed, non-scrolling
+   viewport for the canvas. */
+body.crime-page {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  color: #f4f7fb;
+  background: #101827;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+body.crime-page * { box-sizing: border-box; }
+
+body.crime-page button,
+body.crime-page select { font: inherit; }
+
+.crime-heatmap {
+  --chm-surface: #0b111f;
+  --chm-panel: #172238;
+  --chm-hairline: #2b3a52;
+  --chm-ink: #f4f7fb;
+  --chm-ink-2: #b8c4d8;
+  --chm-muted: #8a97ad;
+  width: min(1200px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 2rem 0 3rem;
+  color: var(--chm-ink);
+}
+
+.crime-heatmap h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.chm-header { margin-bottom: 1.25rem; }
+
+.chm-eyebrow {
+  margin: 0 0 0.5rem;
+  color: var(--chm-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chm-subtitle { margin: 0.4rem 0 0; color: var(--chm-ink-2); font-size: 1rem; }
+
+.chm-status { color: var(--chm-ink-2); }
+
+.chm-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+}
+
+.chm-field { display: flex; flex-direction: column; gap: 0.35rem; }
+
+.chm-field > span { color: var(--chm-muted); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+
+.chm-field select,
+.chm-toggle button,
+.chm-link {
+  min-height: 2.25rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--chm-hairline);
+  border-radius: 0.5rem;
+  background: var(--chm-panel);
+  color: var(--chm-ink);
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.chm-field select { padding-right: 2rem; max-width: 26rem; }
+
+.chm-toggle { display: inline-flex; }
+
+.chm-toggle button { border-radius: 0; margin-left: -1px; }
+
+.chm-toggle button:first-child { border-radius: 0.5rem 0 0 0.5rem; margin-left: 0; }
+
+.chm-toggle button:last-child { border-radius: 0 0.5rem 0.5rem 0; }
+
+.chm-toggle button[aria-pressed='true'] { background: var(--chm-ink); color: #101827; border-color: var(--chm-ink); font-weight: 600; position: relative; z-index: 1; }
+
+.chm-toggle button:hover:not([aria-pressed='true']),
+.chm-link:hover { border-color: var(--chm-ink-2); }
+
+.chm-field select:focus-visible,
+.chm-toggle button:focus-visible,
+.chm-link:focus-visible { outline: 2px solid #75e6bf; outline-offset: 2px; }
+
+.chm-map {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--chm-hairline);
+  border-radius: 0.75rem;
+  background: var(--chm-surface);
+}
+
+.chm-raster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  transition: opacity 200ms ease;
+}
+
+.chm-raster.is-loading { opacity: 0.55; }
+
+.chm-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: crosshair;
+}
+
+.chm-precincts path {
+  fill: rgba(0, 0, 0, 0);
+  stroke: rgba(244, 247, 251, 0.35);
+  stroke-width: 0.8px;
+  stroke-linejoin: round;
+}
+
+.chm-overlay.is-hidden .chm-precincts path { stroke: none; }
+
+.chm-hover {
+  fill: none;
+  stroke: var(--chm-ink);
+  stroke-width: 1.6px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.chm-overlay.is-hidden .chm-hover,
+.chm-overlay.is-hidden .chm-labels { display: none; }
+
+.chm-labels text {
+  fill: var(--chm-ink);
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: rgba(11, 17, 31, 0.85);
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.chm-tooltip {
+  position: absolute;
+  z-index: 2;
+  min-width: 14rem;
+  max-width: 20rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--chm-hairline);
+  border-radius: 0.6rem;
+  background: rgba(23, 34, 56, 0.96);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.chm-tooltip p { margin: 0; }
+
+.chm-tooltip-title { color: var(--chm-ink-2); font-weight: 600; }
+
+.chm-tooltip-title span { color: var(--chm-muted); font-weight: 400; }
+
+.chm-tooltip-value { margin: 0.2rem 0 0.5rem !important; color: var(--chm-ink-2); }
+
+.chm-tooltip-value strong { color: var(--chm-ink); font-size: 1.35rem; font-weight: 700; }
+
+.chm-tooltip dl { display: grid; grid-template-columns: auto auto; gap: 0.15rem 1rem; margin: 0; }
+
+.chm-tooltip dt { color: var(--chm-muted); }
+
+.chm-tooltip dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+
+.chm-tooltip-note { margin-top: 0.5rem !important; color: var(--chm-muted); font-style: italic; }
+
+.chm-tooltip-hint { margin: 0 0 0.5rem !important; color: var(--chm-muted); font-size: 0.78rem; }
+
+.chm-legend {
+  margin-top: 0.9rem;
+  color: var(--chm-ink-2);
+  font-size: 0.82rem;
+}
+
+.chm-legend-bar {
+  height: 0.7rem;
+  width: min(100%, 36rem);
+  border-radius: 3px;
+}
+
+.chm-legend-ticks {
+  position: relative;
+  width: min(100%, 36rem);
+  height: 1.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.chm-legend-ticks span {
+  position: absolute;
+  top: 0.25rem;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.chm-legend-ticks span:first-child { transform: none; }
+
+.chm-legend-ticks span:last-child { transform: translateX(-100%); }
+
+.chm-legend-note { margin: 0.35rem 0 0; color: var(--chm-muted); }
+
+.chm-table {
+  width: 100%;
+  margin-top: 1.5rem;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.chm-table caption { padding: 0 0 0.6rem; color: var(--chm-ink-2); text-align: left; caption-side: top; }
+
+.chm-table th,
+.chm-table td { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--chm-hairline); text-align: left; }
+
+.chm-table thead th { color: var(--chm-muted); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+
+.chm-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.chm-table tbody th { font-weight: 500; }
+
+.chm-table tr.is-hovered td,
+.chm-table tr.is-hovered th { background: var(--chm-panel); }
+
+.chm-footer { margin-top: 1.5rem; color: var(--chm-muted); font-size: 0.8rem; line-height: 1.55; }
+
+.chm-footer p { margin: 0 0 0.5rem; max-width: 70rem; }
+
+@media (max-width: 640px) {
+  .crime-heatmap { width: calc(100% - 24px); }
+}

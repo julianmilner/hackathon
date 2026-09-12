@@ -1,0 +1,191 @@
+{
+ "extent": [
+  18.25,
+  -34.42,
+  19.3,
+  -33.35
+ ],
+ "width": 1941,
+ "height": 2367,
+ "cell_m": 50.0,
+ "sigma_m": 400.0,
+ "encoding": "sqrt8: value = vmax * (pixel / 255)^2; pixel 0 is no crime and drawn transparent",
+ "min_pop_density": 200,
+ "period": {
+  "start": "2025-07-01",
+  "end": "2026-06-30",
+  "label": "Jul 2025 \u2013 Jun 2026",
+  "previous_label": "Jul 2024 \u2013 Jun 2025"
+ },
+ "categories": {
+  "all17": "17 community-reported serious crimes",
+  "contact": "Contact crime (crimes against the person)",
+  "property": "Property-related crime",
+  "murder": "Murder",
+  "sexual": "Sexual offences",
+  "robbery_agg": "Robbery with aggravating circumstances",
+  "burglary_res": "Burglary at residential premises",
+  "theft_vehicle": "Theft of motor vehicle and motorcycle",
+  "theft_from_vehicle": "Theft out of or from motor vehicle",
+  "carjacking": "Carjacking"
+ },
+ "measures": {
+  "density": {
+   "label": "Cases per km\u00b2 per year",
+   "short": "cases/km\u00b2"
+  },
+  "rate": {
+   "label": "Cases per 100 000 residents",
+   "short": "per 100 000"
+  }
+ },
+ "formula": "Each precinct's twelve-month count is spread over its census enumeration areas in proportion to 2021 residents, rasterised at 50 m, then every point is the Gaussian-weighted sum of surrounding cases, w(d) = exp(-d\u00b2/2\u03c3\u00b2) with \u03c3 = 400 m. Density is cases per km\u00b2 per year; rate divides by residents smoothed with the same kernel and is hidden where fewer than 200 people/km\u00b2 live.",
+ "sources": {
+  "crime": "SAPS quarterly crime statistics per police station, saps.gov.za",
+  "boundaries": "Western Cape Government GIS, SAPS Police Precincts (published 2019/2020)",
+  "population": "Western Cape Government GIS, GeoTerraImage 2021 population by enumeration area, summed per precinct"
+ },
+ "generated": "2026-09-12",
+ "layers": {
+  "all17-density": {
+   "file": "all17-density.png",
+   "category": "all17",
+   "measure": "density",
+   "vmax": 603.279,
+   "total_cases": 202853.6
+  },
+  "all17-rate": {
+   "file": "all17-rate.png",
+   "category": "all17",
+   "measure": "rate",
+   "vmax": 20161.134,
+   "total_cases": 202853.6
+  },
+  "contact-density": {
+   "file": "contact-density.png",
+   "category": "contact",
+   "measure": "density",
+   "vmax": 326.725,
+   "total_cases": 83385.6
+  },
+  "contact-rate": {
+   "file": "contact-rate.png",
+   "category": "contact",
+   "measure": "rate",
+   "vmax": 4182.801,
+   "total_cases": 83385.6
+  },
+  "property-density": {
+   "file": "property-density.png",
+   "category": "property",
+   "measure": "density",
+   "vmax": 107.949,
+   "total_cases": 35004.5
+  },
+  "property-rate": {
+   "file": "property-rate.png",
+   "category": "property",
+   "measure": "rate",
+   "vmax": 4182.966,
+   "total_cases": 35004.5
+  },
+  "murder-density": {
+   "file": "murder-density.png",
+   "category": "murder",
+   "measure": "density",
+   "vmax": 22.235,
+   "total_cases": 3868.5
+  },
+  "murder-rate": {
+   "file": "murder-rate.png",
+   "category": "murder",
+   "measure": "rate",
+   "vmax": 134.653,
+   "total_cases": 3868.5
+  },
+  "sexual-density": {
+   "file": "sexual-density.png",
+   "category": "sexual",
+   "measure": "density",
+   "vmax": 21.281,
+   "total_cases": 4819.4
+  },
+  "sexual-rate": {
+   "file": "sexual-rate.png",
+   "category": "sexual",
+   "measure": "rate",
+   "vmax": 175.476,
+   "total_cases": 4819.4
+  },
+  "robbery_agg-density": {
+   "file": "robbery_agg-density.png",
+   "category": "robbery_agg",
+   "measure": "density",
+   "vmax": 88.188,
+   "total_cases": 17621.4
+  },
+  "robbery_agg-rate": {
+   "file": "robbery_agg-rate.png",
+   "category": "robbery_agg",
+   "measure": "rate",
+   "vmax": 1213.599,
+   "total_cases": 17621.4
+  },
+  "burglary_res-density": {
+   "file": "burglary_res-density.png",
+   "category": "burglary_res",
+   "measure": "density",
+   "vmax": 34.045,
+   "total_cases": 12156.1
+  },
+  "burglary_res-rate": {
+   "file": "burglary_res-rate.png",
+   "category": "burglary_res",
+   "measure": "rate",
+   "vmax": 681.557,
+   "total_cases": 12156.1
+  },
+  "theft_vehicle-density": {
+   "file": "theft_vehicle-density.png",
+   "category": "theft_vehicle",
+   "measure": "density",
+   "vmax": 13.373,
+   "total_cases": 3752.6
+  },
+  "theft_vehicle-rate": {
+   "file": "theft_vehicle-rate.png",
+   "category": "theft_vehicle",
+   "measure": "rate",
+   "vmax": 434.374,
+   "total_cases": 3752.6
+  },
+  "theft_from_vehicle-density": {
+   "file": "theft_from_vehicle-density.png",
+   "category": "theft_from_vehicle",
+   "measure": "density",
+   "vmax": 64.274,
+   "total_cases": 16076.1
+  },
+  "theft_from_vehicle-rate": {
+   "file": "theft_from_vehicle-rate.png",
+   "category": "theft_from_vehicle",
+   "measure": "rate",
+   "vmax": 3311.985,
+   "total_cases": 16076.1
+  },
+  "carjacking-density": {
+   "file": "carjacking-density.png",
+   "category": "carjacking",
+   "measure": "density",
+   "vmax": 20.472,
+   "total_cases": 2278.6
+  },
+  "carjacking-rate": {
+   "file": "carjacking-rate.png",
+   "category": "carjacking",
+   "measure": "rate",
+   "vmax": 119.186,
+   "total_cases": 2278.6
+  }
+ }
+}
