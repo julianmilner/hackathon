@@ -19,7 +19,8 @@ Keep this short and ruthless. Move only the next few items into **Now**.
 - [ ] Compare mode: two pins, one head-to-head verdict.
 - [ ] "Think harder" button rerunning the verdict at a higher effort level with summarised thinking shown.
 - [ ] World mode using tectonic plates, earthquake catalogue and life expectancy.
-- [ ] Tsunami simulation: water surface shader rising and flowing inland along elevation, parameters chosen by the model.
+- [ ] Tsunami stage one: water sheet shader depth-tested against the city mesh, stalling on rising ground, parameters chosen by the model.
+- [ ] Tsunami stage two: GPU shallow-water simulation so water flows between buildings, plus debris and damage tint. Only after the click-to-verdict loop works. See `docs/rendering.md`.
 
 ## Parked
 

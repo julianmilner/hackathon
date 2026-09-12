@@ -54,11 +54,28 @@ The library ships a `GoogleCloudAuthPlugin` that takes a Google Map Tiles API ke
 
 ## Simulations
 
-Aim for convincing, not physically exact. The model chooses the parameters from real data; the shader does the visuals.
+Aim for convincing, not physically exact. The model chooses the parameters from real data; the shaders do the visuals.
 
-- **Tsunami:** a water surface mesh with a custom shader that rises and flows inland along elevation, depth-tested against the city mesh so streets flood and Table Mountain stays dry.
-- **Earthquake:** camera shake plus a ground-crack shader. Do not simulate buildings collapsing.
-- **Fire:** particle system and a spreading emissive mask driven by wind direction and slope.
+### Tsunami (agreed scope, 2026-09-12)
+
+Build in two stages. Stage one must work before stage two starts.
+
+1. **Sheet version.** A water mesh over the bay with a vertex shader for swell and the wave front and a fragment shader for colour, transparency and foam. Depth-tested against the city mesh so streets fill and buildings poke out. Sample a terrain height field by raycasting down onto the loaded tiles, so water level per cell is wave height minus ground height and the wave stalls on rising ground. About two hundred lines of shader plus tuning.
+2. **Flow between buildings.** A shallow-water simulation on the GPU with ping-pong render targets. The sampled height field already contains roofs, so buildings become tall cells the water cannot enter and it funnels up streets, wraps corners and pools behind buildings. A five-metre grid over a two-kilometre area is a 400 by 400 texture, fine on a laptop GPU. Roughly a day of work; start only once the click-to-verdict loop is done.
+
+Damage is shown with debris particles, floating cars and foam where the water is deep and fast, plus a damage tint on the inundated mesh.
+
+**Out of scope:** knocking buildings over. The Google mesh is one continuous surface with no separable buildings. Proxy boxes from OpenStreetMap footprints look wrong against the photoreal city, and shader deformation stretches the textures. Do not spend time here. If a collapse shot is ever wanted, shader deformation of a single hero building is the only photoreal option.
+
+Practicalities: fly the camera in and wait for tiles before sampling heights; the mesh has no sea floor, so the sea is a plane we add; keep the water area to a few square kilometres and drop reflections if frames drop; budget a few hours of tuning on the demo laptop.
+
+### Earthquake
+
+Camera shake plus a ground-crack shader. Do not simulate buildings collapsing.
+
+### Fire
+
+Particle system and a spreading emissive mask driven by wind direction and slope.
 
 ## Data preparation
 
