@@ -9,6 +9,8 @@ export default defineConfig({
         main: 'index.html',
         // standalone simulation sandboxes, see src/simulations/README.md
         tsunami: 'tsunami.html',
+        kaiju: 'kaiju.html',
+        fire: 'fire.html',
       },
     },
   },

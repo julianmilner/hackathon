@@ -46,6 +46,14 @@ Record a decision when it changes the work other people or agents should do. Kee
 
 **Consequences:** Stage two starts only after the click-to-verdict loop works. Nobody spends time on building destruction. Details in `docs/rendering.md`.
 
+## 2026-09-12 — Wildfire is the second simulation, built as a standalone module first
+
+**Decision:** Build the Table Mountain wildfire next, as a standalone module under `src/simulations/fire/` with its own sandbox page, mirroring the tsunami module's contract (local frame group, shared height-field sampler, trigger with model-chosen parameters, per-frame update). Spread runs as a CPU cellular automaton; visuals are a draped scorch sheet plus GPU particles.
+
+**Why:** Fire reuses the terrain sampling the tsunami already needs, is real Cape Town history (Rhodes Memorial, April 2021), and gives the persona verdict a second hazard with a concrete "the front reaches you in N minutes" payoff. A CPU automaton is a few hundred lines, deterministic and readable by the verdict code, where a GPU version would need a readback. Building standalone keeps the primary demo path untouched until the click-to-verdict loop works.
+
+**Consequences:** Every simulation follows the contract in `src/simulations/README.md`. Integrating into the world means placing the group with the tiles' ENU helper and sampling once tiles are loaded; nothing in the module depends on the sandbox. Scorch is a draped sheet, not a tile-material tint; upgrading that is optional polish.
+
 ## 2026-09-12 — Simulations run in the browser as standalone modules, not Blender bakes
 
 **Decision:** Every hazard simulation is a three.js module under `src/simulations/<name>/` with its own sandbox page and a stand-in scene, following the contract in `src/simulations/README.md`. The tsunami is a GPU shallow-water solver over a height field sampled from the live scene. No Blender or offline fluid bakes.
@@ -54,3 +62,11 @@ Record a decision when it changes the work other people or agents should do. Kee
 
 **Consequences:** Map and simulation meet at one seam: a local east-north-up frame plus `sampleTerrain(tilesGroup)` once tiles have loaded. React is pinned to 19.2 because react-three-fiber does not yet accept 19.3. Sandboxes are extra Vite entries, registered in `vite.config.ts`.
 
+
+## 2026-09-12 — Kaiju is a procedural Blender model, sequenced after the tsunami
+
+**Decision:** The kaiju beat uses a model generated entirely by `tools/blender/kaiju.py` (mesh, rig, weights and six clips) in the Claude palette, exported to a committed GLB and driven by a renderer-free behaviour state machine. It surfaces once the tsunami has peaked and attacks the pinned house without breaking it.
+
+**Why:** A downloaded kaiju brings licence questions and a rig we cannot retime; a scripted model is reproducible, half a megabyte, and can be re-proportioned in minutes, the same approach as the fynbos. The Claude colours make it read as ours at a glance. Sequencing it after the tsunami reuses the terrain height field and turns two effects into one story.
+
+**Consequences:** Nobody hand-edits the GLB; change the script and rebuild. Clip lengths and event times are duplicated in `KaijuBehaviour.ts` and must move together. Building destruction stays out of scope.

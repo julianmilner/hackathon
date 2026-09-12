@@ -22,6 +22,10 @@ Keep this short and ruthless. Move only the next few items into **Now**.
 - [x] Tsunami standalone module and sandbox (`/tsunami.html`): GPU shallow-water flow between buildings over a sampled height field, model-chosen wave profile. See `src/simulations/tsunami/README.md`.
 - [ ] Tsunami in the world: place over the Waterfront or Muizenberg pin, set local sea level, sample the Google mesh after tiles load.
 - [ ] Tsunami polish: debris and floating objects, damage tint on the flooded mesh, momentum advection if the flow looks too pressure-driven.
+- [x] Wildfire standalone module and sandbox (`/fire.html`): terrain-following spread with wind and slope, flames, smoke, arrival time per pin, Blender-generated fynbos that burns down to charred remnants.
+- [ ] Wildfire in the world: place over Devil's Peak, sample the Google mesh, feed the fire's arrival time into the persona verdict.
+- [x] Kaiju standalone module and sandbox (`/kaiju.html`): Claude-themed kaiju generated in Blender with six clips, a behaviour state machine (rise, walk, attack, roar, stomp, retreat) and a "tsunami, then kaiju" sequence on the stand-in city. See `tools/blender/kaiju.md`.
+- [ ] Kaiju in the world: place at the Muizenberg pin, share the tsunami's height field, trigger `rise()` when the wave peaks, add roar and footstep audio and camera shake.
 
 ## Parked
 

@@ -1,0 +1,6 @@
+export { FireSimulation, defaultFire } from './FireSimulation'
+export type { FireOptions, FireParams, FuelFunction } from './FireSimulation'
+export { Fire } from './Fire'
+export type { FireProps } from './Fire'
+export { Fynbos, defaultVariants } from './Fynbos'
+export type { FynbosOptions, FynbosVariant } from './Fynbos'

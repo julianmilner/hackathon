@@ -73,6 +73,13 @@ slowly so the flood recedes.
 Run in the browser, not baked in Blender: the flow depends on the streamed Google mesh, which only
 exists at runtime on the client, and the model chooses the wave parameters per pin.
 
+- **Fynbos.** `tools/blender/fynbos.py` generates low-poly proteas, restios and ericas plus a charred
+  remnant of each (800 triangles for all six) into `public/models/fynbos.glb`. `Fynbos.ts` scatters
+  them as instanced meshes over the fuel cells, scaled up so they read from the demo distance. Each
+  instance samples the fire state texture in its vertex shader: the live plant wilts and collapses
+  as its cell chars, the remnant grows in its place, and both glow with embers while the cell is
+  alight. One draw call per variant, so 30k plants cost almost nothing.
+
 Integration to do: place the group with the tiles' ENU helper, set `seaLevel` to the local
 ellipsoid height of the sea (about 30 m at Cape Town), sample terrain after the tiles have loaded.
 Not done: debris and floating objects, damage tint on the inundated mesh.
@@ -81,9 +88,54 @@ Not done: debris and floating objects, damage tint on the inundated mesh.
 
 Camera shake plus a ground-crack shader. Do not simulate buildings collapsing.
 
-### Fire
+### Fire (standalone module built 2026-09-12)
 
-Particle system and a spreading emissive mask driven by wind direction and slope.
+Lives in `src/simulations/fire/`, sandbox at `/fire.html`. Same module shape as the tsunami: a
+`FireSimulation` class owning a group in a local east-north-up frame, `sampleTerrain()` using the
+shared height-field sampler, `ignite()` with model-chosen parameters, `update(dt)` each frame.
+
+- **Spread** is a cellular automaton on the CPU over the same 256 by 256 height field. Each burning
+  cell heats its eight neighbours at a rate that grows exponentially with wind alignment and
+  uphill slope; a cell catches when accumulated heat passes a randomised threshold. Embers spot
+  ahead of the front above 5 m/s. Fuel comes from height and slope (nothing below `fuelMinHeight`,
+  bare rock on steep cells) and can be overridden per cell. CPU rather than GPU because 65k cells
+  is trivial and the verdict can read `arrivalTime(x, z)` for the pin directly.
+- **Visuals** are a scorch and ember sheet draped over the height field (char darkens as fuel is
+  consumed, the front glows and flickers, fuel just ahead warms up), two GPU point-sprite systems
+  for flames and wind-carried smoke, and a flickering point light over the fire.
+- **Model parameters:** ignition point, wind direction and speed, humidity. The default scenario is
+  the April 2021 Rhodes Memorial fire with a north-westerly berg wind.
+
+Integration to do: place the group with the tiles' ENU helper, sample terrain after the tiles
+have loaded at high detail, set `fuelMinHeight` to the contour where the suburb ends. Optional
+polish is injecting the same scorch lookup into the tile materials so char sits on the photoreal
+texture instead of a draped sheet.
+
+### Kaiju (Claude-themed; standalone module built 2026-09-12)
+
+Lives in `src/simulations/kaiju/`, sandbox at `/kaiju.html`. A second beat after the tsunami:
+while the water holds, a comically large three-hundred-metre kaiju in the Claude palette (Claude-mascot face with big dark eyes and a smile, terracotta hide,
+cream belly, glowing cream plates and a glowing Claude starburst on its chest) surfaces in False Bay,
+wades ashore on the same height field the tsunami sampled, and smashes the pinned house. In the
+sandbox, "Tsunami, then kaiju" plays the whole sequence on the stand-in city.
+
+- **Model.** Generated entirely by `tools/blender/kaiju.py` and committed as
+  `public/models/kaiju.glb` (about 0.5 MB, 5k vertices, 25 bones). Six in-place clips: Idle, Walk,
+  Rise, Attack, Roar, Stomp. Clip table, rebuild command and a contact sheet of preview renders in
+  `tools/blender/kaiju.md`.
+- **Code.** `KaijuBehaviour` is a renderer-free state machine (hidden, rising, walking, attacking,
+  roaring, stomping, idle, retreating, submerging) that owns clip timing and emits footstep, hit
+  and roar events. `KaijuActor` follows the module contract: a group in the local frame,
+  `sampleTerrain()` or `setTerrain(tsunami.terrain)`, `rise(target)` as the trigger, `update(dt)`,
+  `reset()`, `dispose()`. It loads the GLB, crossfades clips, follows the terrain, draws splash and
+  dust rings and pulses the glow on a roar. `<Kaiju />` is the react-three-fiber wrapper.
+- **Integration to do.** Place the group with the tiles' ENU helper, share the tsunami's height
+  field, call `rise(pin)` once the wave has peaked, route `onEvent` into camera shake and sound.
+  Walk cadence follows speed so the feet do not slide. Clip lengths and event times are mirrored
+  in `KAIJU_CLIPS` and must change together with the Blender script.
+- **Constraints.** The house does not break, for the same reason buildings do not collapse in the
+  tsunami; damage is the hit ring, camera shake and whatever tint the tsunami applies. One kaiju
+  at a time.
 
 ## Data preparation
 

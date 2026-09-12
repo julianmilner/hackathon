@@ -37,4 +37,5 @@ Simulation sandboxes run on the same dev server, for example http://localhost:51
 - [Architecture](docs/architecture.md) — technical boundaries and major choices.
 - [Demo plan](docs/demo.md) — pitch and click-path for judges.
 - [Rendering](docs/rendering.md) — how the 3D city is rendered, costs, and constraints.
+- [Simulations](src/simulations/README.md) — hazard modules, their sandboxes and the generated models (fynbos, kaiju).
 - [Tsunami simulation](src/simulations/tsunami/README.md) — standalone GPU shallow-water module and its sandbox page.

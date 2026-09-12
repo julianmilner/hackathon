@@ -14,7 +14,7 @@ Design the product around this path. A polished, dependable two-minute story bea
 
 1. **Hook (0:00–0:20):** Show the problem or a relatable moment.
 2. **Input (0:20–0:40):** Show what the user provides or chooses.
-3. **Magic (0:40–1:30):** Demonstrate the core transformation.
+3. **Magic (0:40–1:30):** Demonstrate the core transformation. Candidate beat: the tsunami floods the streets, then the Claude kaiju surfaces from False Bay and smashes the house (see Kaiju in `docs/rendering.md`).
 4. **Payoff (1:30–1:50):** Make the result tangible.
 5. **Close (1:50–2:00):** Restate value and future potential.
 
